@@ -1,0 +1,1 @@
+enum StatModifiers { Actor, Consumable }
