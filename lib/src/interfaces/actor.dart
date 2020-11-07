@@ -17,12 +17,15 @@ class Actor {
   Set<Trait> embryoTraits;
 
   Actor(Set<Trait> traits, Set<Skill> skills, Set<Statistic> statistics,
-      Set<Goal> goals, SimPoint location) {
+      Set<Goal> goals,
+      [SimPoint location]) {
     this.traits = traits;
     this.skills = skills;
     this.statistics = statistics;
     this.goals = goals;
-    this.location = location;
+    if (location != null) {
+      this.location = location;
+    }
   }
 
   void useSkill({String name}) {
@@ -41,6 +44,6 @@ class Actor {
 
   void giveBirth(Simulation sim) {
     var child = Actor(embryoTraits, skills, statistics, goals, location);
-    sim.actors.add(child);
+    sim.bornThisCycle.add(child);
   }
 }

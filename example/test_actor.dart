@@ -3,7 +3,6 @@ import 'package:gensim/src/objects/goal.dart';
 import 'package:gensim/src/objects/statistic.dart';
 import 'package:gensim/src/objects/trait.dart';
 import 'package:gensim/src/objects/skill.dart';
-import 'package:gensim/src/sim_point.dart';
 
 class TestActor extends Actor {
   Trait getTrait({String name}) {
@@ -35,6 +34,6 @@ class TestActor extends Actor {
   }
 
   TestActor(Set<Trait> traits, Set<Skill> skills, Set<Statistic> statistics,
-      Set<Goal> goals, SimPoint location)
-      : super(traits, skills, statistics, goals, location);
+      Set<Goal> goals)
+      : super(traits, skills, statistics, goals);
 }

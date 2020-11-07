@@ -11,99 +11,142 @@ import 'objects/goal.dart';
 
 class Simulation {
   int maxCycles;
-  bool running;
+  bool running = true;
   List<Actor> actors;
   List<Feature> features;
   List<Consumable> consumables;
   SimPoint size;
   List<SimPoint> points;
+  List<Actor> bornThisCycle = [];
 
   Simulation(int worldSizeX, worldSizeY, int maxCycles, List<Actor> actors,
       List<Feature> features, List<Consumable> consumables) {
-    size.x = worldSizeX;
-    size.y = worldSizeY;
+    size = SimPoint(worldSizeX, worldSizeY);
+    var tmpPoints = <SimPoint>[];
     for (var x = 0; x < size.x; x++) {
       for (var y = 0; y < size.y; y++) {
-        points.add(SimPoint(x, y));
+        tmpPoints.add(SimPoint(x, y));
       }
     }
+    points = tmpPoints;
     this.maxCycles = maxCycles;
-    this.actors = actors;
+    //  this.actors = actors;
     this.features = features;
-    this.consumables = consumables;
+    this.consumables = <Consumable>[];
+    for (var consumable in consumables) {
+      add(consumable);
+    }
+    this.actors = <Actor>[];
+    for (var actor in actors) {
+      add(actor);
+    }
   }
 
   void run() {
     var cycleCount = 0;
     while (running) {
       cycleCount++;
-      _validateSim(cycleCount);
       _cycle();
+      _outputState(cycleCount);
       sleep(Duration(milliseconds: 500));
+      _validateSim(cycleCount);
     }
   }
 
   void _cycle() {
+    for (var child in bornThisCycle) {
+      actors.add(child);
+    }
+    bornThisCycle.clear();
     for (var actor in actors) {
       _tryBirth(actor);
       var currentGoal = _findAction(actor.goals);
-      var target = currentGoal.stat.modifiedBy;
-      var closestPoint = _findNearest(target, actor.location);
-      var newTraits =
-          _moveActorTowards(actor, closestPoint, target, currentGoal);
-      if (newTraits != null) {
-        actor.impregnate(newTraits);
+      if (currentGoal != null) {
+        var target = currentGoal.stat.modifiedBy;
+        var closestPoint = _findNearest(target, actor.location, actor);
+        if (closestPoint != null) {
+          var newTraits =
+              _moveActorTowards(actor, closestPoint, target, currentGoal);
+          if (newTraits != null) {
+            actor.impregnate(newTraits);
+          }
+        }
+        // else{
+        //   actor.location.contents.firstWhere((element) => element.goal)
+        // }
       }
     }
+  }
+
+  void _outputState(var cycle) {
+    for (var actor in actors) {
+      print(
+          'Alive: ${actor.alive}, Goals: ${actor.goals}, Pregnant: ${actor.pregnant}, Traits: ${actor.traits}, Location: ${actor.location}');
+    }
+    print(
+        'Features: ${features}, Consumables: ${consumables}, CurrentCycle: ${cycle}');
   }
 
   void _tryBirth(Actor actor) {
     if (actor.pregnant == true) {
       actor.giveBirth(this);
+      actor.pregnant = false;
     }
   }
 
-  Set<Trait> _isOnPoint(Actor actor, target, Goal currentGoal) {
-    var oldPoint = actor.location;
-    if (actor.location == oldPoint) {
-      if (target == StatModifiers.Actor) {
-        currentGoal.stat.value = currentGoal.stat.value + 1;
-        return breed(
-            oldPoint.contents
-                .firstWhere((element) => element is Actor && element != actor),
-            actor);
-      } else {
-        Consumable consuming = (actor.location.contents
-            .firstWhere((element) => element is Consumable));
-        currentGoal.stat.value = currentGoal.stat.value + consuming.value;
-        actor.location.contents.remove(consuming);
-      }
+  Set<Trait> _isOnPoint(Actor actor, target, Goal currentGoal, SimPoint point) {
+    if (target == StatModifiers.Actor) {
+      currentGoal.stat.value = currentGoal.stat.value + 1;
+      return _breed(
+          point.contents
+              .firstWhere((element) => element is Actor && element != actor),
+          actor);
+    } else {
+      Consumable consuming =
+          (point.contents.firstWhere((element) => element is Consumable));
+      currentGoal.stat.value = currentGoal.stat.value + consuming.value;
+      point.contents.remove(consuming);
     }
     return null;
   }
 
   Set<Trait> _moveActorTowards(
       Actor actor, SimPoint newPoint, target, Goal currentGoal) {
-    var oldPoint = actor.location;
     if ((actor.location.x == newPoint.x) && (actor.location.y == newPoint.y)) {
-      return _isOnPoint(actor, target, currentGoal);
+      if (newPoint.contents.length > 1 || target == StatModifiers.Consumable) {
+        return _isOnPoint(actor, target, currentGoal, newPoint);
+      }
     }
+    points.firstWhere((p) => p == actor.location).contents.remove(actor);
     if (actor.location.x < newPoint.x) {
-      actor.location.x++;
+      //actor.location.x++;
+      actor.location = points.firstWhere((p) =>
+          p.x == (actor.location.x.toInt() + 1) &&
+          p.y == actor.location.y.toInt());
     } else if (actor.location.x > newPoint.x) {
-      actor.location.x--;
+      //actor.location.x--;
+      actor.location = points.firstWhere((p) =>
+          p.x == (actor.location.x.toInt() - 1) &&
+          p.y == actor.location.y.toInt());
     }
     if (actor.location.y < newPoint.y) {
-      actor.location.y++;
+      //actor.location.y++;
+      actor.location = points.firstWhere((p) =>
+          p.y == (actor.location.y.toInt() + 1) &&
+          p.x == actor.location.x.toInt());
     } else if (actor.location.y > newPoint.y) {
-      actor.location.y--;
+      //actor.location.y--;
+      actor.location = points.firstWhere((p) =>
+          p.y == (actor.location.y.toInt() - 1) &&
+          p.x == actor.location.x.toInt());
     }
-    points.firstWhere((p) => p == oldPoint).contents.remove(actor);
+    actor.location.contents.add(actor);
     return null;
   }
 
   ///Returns the nearest point to the location passed in which contains an object of the target type
-  SimPoint _findNearest(StatModifiers target, SimPoint currentLocation) {
+  SimPoint _findNearest(
+      StatModifiers target, SimPoint currentLocation, Actor actor) {
     var closestPoint;
     var closestPointDouble = SimPoint(0, 0).distanceTo(size);
     if (target == StatModifiers.Actor) {
@@ -111,7 +154,8 @@ class Simulation {
         for (var obj in point.contents) {
           if (obj is Actor) {
             // && point.contents.firstWhere((element) => element is Actor) != currentLocation.contents.firstWhere((element) => element is Actor
-            if (currentLocation.distanceTo(point) < closestPointDouble) {
+            if (currentLocation.distanceTo(point) < closestPointDouble &&
+                actor.location != point) {
               closestPointDouble = currentLocation.distanceTo(point);
               closestPoint = point;
             }
@@ -130,13 +174,16 @@ class Simulation {
         }
       }
     }
+    if (closestPoint == null && target == StatModifiers.Actor) {
+      closestPoint = currentLocation;
+    }
     return closestPoint;
   }
 
   Goal _findAction(Set<Goal> goals) {
     Goal current;
+    var highestUnsatisfied = goals.length;
     for (var goal in goals) {
-      var highestUnsatisfied = goals.length;
       if ((goal.priority <= highestUnsatisfied) &&
           (goal.trySatisfy() == false)) {
         highestUnsatisfied = goal.priority;
@@ -152,14 +199,23 @@ class Simulation {
 
   void add(Object object) {
     if (object is Actor) {
+      actors.add(object);
+      var location = Random().nextInt(100);
+      points[location].contents.add(object);
+      object.location = points[location];
     } else if (object is Feature) {
-    } else if (object is Consumable) {}
+    } else if (object is Consumable) {
+      consumables.add(object);
+      var location = Random().nextInt(100);
+      points[location].contents.add(object);
+    }
   }
 
   //Called each cycle to make sure sim should be running
   void _validateSim(int cycleCount) {
     if (cycleCount >= maxCycles) {
-      stop();
+      running = false;
+      print('Sim complete');
     }
   }
 
@@ -191,12 +247,12 @@ class Simulation {
     return trait;
   }
 
-  Set<Trait> breed(Actor actor1, Actor actor2) {
-    Set<Trait> child1Traits;
-    Set<Trait> child2Traits;
+  Set<Trait> _breed(Actor actor1, Actor actor2) {
+    var child1Traits = <Trait>{};
+    var child2Traits = <Trait>{};
     if (actor1.traits.length == actor2.traits.length) {
       var crossoverPoint = Random().nextInt(actor1.traits.length);
-      for (var i = 0; i <= actor1.traits.length; i++) {
+      for (var i = 0; i < actor1.traits.length; i++) {
         if (i <= crossoverPoint) {
           child1Traits.add(_reasonableFluxuation(actor2.traits.elementAt(i)));
           child2Traits.add(_reasonableFluxuation(actor1.traits.elementAt(i)));
