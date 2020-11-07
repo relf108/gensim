@@ -6,6 +6,7 @@ import 'package:gensim/src/objects/feature.dart';
 import 'package:gensim/src/objects/stat_modifiers.dart';
 import 'package:gensim/src/objects/trait.dart';
 import 'package:gensim/src/sim_point.dart';
+import 'package:gensim/src/sim_show.dart';
 
 import 'objects/goal.dart';
 
@@ -47,7 +48,8 @@ class Simulation {
     while (running) {
       cycleCount++;
       _cycle();
-      _outputState(cycleCount);
+      // _outputState(cycleCount);
+      SimShow.printSim(this);
       sleep(Duration(milliseconds: 500));
       _validateSim(cycleCount);
     }
@@ -71,9 +73,6 @@ class Simulation {
             actor.impregnate(newTraits);
           }
         }
-        // else{
-        //   actor.location.contents.firstWhere((element) => element.goal)
-        // }
       }
     }
   }
@@ -104,7 +103,10 @@ class Simulation {
     } else {
       Consumable consuming =
           (point.contents.firstWhere((element) => element is Consumable));
-      currentGoal.stat.value = currentGoal.stat.value + consuming.value;
+      var statName = currentGoal.stat.name;
+      var statToIncrement =
+          actor.statistics.firstWhere((stat) => stat.name == statName);
+      statToIncrement.value += consuming.value;
       point.contents.remove(consuming);
     }
     return null;

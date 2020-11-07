@@ -23,16 +23,6 @@ class TestActor extends Actor {
     return null;
   }
 
-  //A Skill could also be directly used from an actor with;
-  // actor.skills.lookup(skill1).function('actor skill is being used');
-  void useSkill({String name}) {
-    for (var skill in skills) {
-      if (skill.name == name) {
-        skill.function(skill.name);
-      }
-    }
-  }
-
   TestActor(Set<Trait> traits, Set<Skill> skills, Set<Statistic> statistics,
       Set<Goal> goals)
       : super(traits, skills, statistics, goals);
