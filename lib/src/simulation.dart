@@ -1,63 +1,77 @@
-import 'dart:io';
+import 'dart:collection';
 import 'dart:math';
-import 'package:gensim/gensim.dart';
 import 'package:gensim/src/objects/consumable.dart';
 import 'package:gensim/src/objects/feature.dart';
 import 'package:gensim/src/objects/stat_modifiers.dart';
+import 'package:gensim/src/objects/statistic.dart';
 import 'package:gensim/src/objects/trait.dart';
 import 'package:gensim/src/sim_point.dart';
 import 'package:gensim/src/sim_show.dart';
 
+import 'extendable_classes/actor.dart';
 import 'objects/goal.dart';
 
 class Simulation {
   int maxCycles;
   bool running = true;
-  List<Actor> actors;
-  List<Feature> features;
-  List<Consumable> consumables;
+  List<Actor> actors = <Actor>[];
+  List<Feature> features = <Feature>[];
+  List<Consumable> consumables = <Consumable>[];
   SimPoint size;
-  List<SimPoint> points;
-  List<Actor> bornThisCycle = [];
+  List<SimPoint> points = <SimPoint>[];
+  Map<Actor, SimPoint> bornThisCycle = {};
+  Map<Statistic, int> statChangeMap = {};
 
-  Simulation(int worldSizeX, worldSizeY, int maxCycles, List<Actor> actors,
-      List<Feature> features, List<Consumable> consumables) {
+  Simulation(
+      int worldSizeX,
+      worldSizeY,
+      int maxCycles,
+      List<Actor> actors,
+      List<Feature> features,
+      List<Consumable> consumables,
+      Map<Statistic, int> statChangeMap) {
     size = SimPoint(worldSizeX, worldSizeY);
-    var tmpPoints = <SimPoint>[];
     for (var x = 0; x < size.x; x++) {
       for (var y = 0; y < size.y; y++) {
-        tmpPoints.add(SimPoint(x, y));
+        points.add(SimPoint(x, y));
       }
     }
-    points = tmpPoints;
     this.maxCycles = maxCycles;
-    //  this.actors = actors;
-    this.features = features;
-    this.consumables = <Consumable>[];
+    for (var feature in features) {
+      add(feature);
+    }
     for (var consumable in consumables) {
       add(consumable);
     }
-    this.actors = <Actor>[];
     for (var actor in actors) {
       add(actor);
     }
+    this.statChangeMap.addAll(statChangeMap);
   }
 
   void run() {
     var cycleCount = 0;
     while (running) {
       cycleCount++;
+      cycleStatchanges(statChangeMap);
       _cycle();
       // _outputState(cycleCount);
       SimShow.printSim(this);
-      sleep(Duration(milliseconds: 500));
+      //sleep(Duration(milliseconds: 500));
       _validateSim(cycleCount);
     }
   }
 
+  //cycle method exposed to users.
+  void cycleStatchanges(Map<Statistic, int> statChangeMap) {
+    for (var stat in statChangeMap.entries) {
+      stat.key.value = stat.key.value + stat.value;
+    }
+  }
+
   void _cycle() {
-    for (var child in bornThisCycle) {
-      actors.add(child);
+    for (var child in bornThisCycle.entries) {
+      add(child.key, child.value);
     }
     bornThisCycle.clear();
     for (var actor in actors) {
@@ -88,8 +102,12 @@ class Simulation {
 
   void _tryBirth(Actor actor) {
     if (actor.pregnant == true) {
-      actor.giveBirth(this);
+      //actor.giveBirth(this);
       actor.pregnant = false;
+      actor.statistics
+          .firstWhere((element) => element.name == 'pregnant')
+          .value = 0;
+      Actor.giveBirth(actor, this);
     }
   }
 
@@ -108,6 +126,7 @@ class Simulation {
           actor.statistics.firstWhere((stat) => stat.name == statName);
       statToIncrement.value += consuming.value;
       point.contents.remove(consuming);
+      //dont remove consumeable from the simulation as it may want to respawn
     }
     return null;
   }
@@ -199,16 +218,25 @@ class Simulation {
     running = false;
   }
 
-  void add(Object object) {
+  void add(Object object, [SimPoint parentLocation]) {
     if (object is Actor) {
       actors.add(object);
-      var location = Random().nextInt(100);
+      var location;
+      if (parentLocation == null) {
+        location = Random().nextInt(size.x * size.y);
+      } else {
+        for (var i = 0; i < points.length; i++) {
+          if (points[i] == parentLocation) {
+            location = i;
+          }
+        }
+      }
       points[location].contents.add(object);
       object.location = points[location];
     } else if (object is Feature) {
     } else if (object is Consumable) {
       consumables.add(object);
-      var location = Random().nextInt(100);
+      var location = Random().nextInt(size.x * size.y);
       points[location].contents.add(object);
     }
   }
@@ -245,13 +273,15 @@ class Simulation {
         newTraitVal = 0;
       }
     }
-    trait.value = newTraitVal;
-    return trait;
+
+    return Trait(trait.name, newTraitVal, trait.maxValue);
   }
 
   Set<Trait> _breed(Actor actor1, Actor actor2) {
     var child1Traits = <Trait>{};
     var child2Traits = <Trait>{};
+    // && actor1.runtimeType == actor2.runtimeType this needs to be put in place once I can have actors give birth to actors
+    //of their own subtype.
     if (actor1.traits.length == actor2.traits.length) {
       var crossoverPoint = Random().nextInt(actor1.traits.length);
       for (var i = 0; i < actor1.traits.length; i++) {

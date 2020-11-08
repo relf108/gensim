@@ -1,3 +1,5 @@
+import 'dart:mirrors';
+
 import 'package:gensim/src/objects/goal.dart';
 import 'package:gensim/src/objects/skill.dart';
 import 'package:gensim/src/objects/statistic.dart';
@@ -28,6 +30,32 @@ class Actor {
     }
   }
 
+  ///spawn a child
+  Actor.spawnChild(Actor other, Simulation sim) {
+    alive = other.alive;
+    traits = other.embryoTraits;
+    skills = other.skills;
+    var newStatistics = <Statistic>{};
+    for (var stat in other.statistics) {
+      newStatistics.add(Statistic.clone(stat));
+    }
+    statistics = newStatistics;
+    goals = other.goals;
+    location = other.location;
+    pregnant = false;
+    if (other.location != null) {
+      location = other.location;
+    }
+  }
+
+  ///Give birth to actor of child actor's type
+  Actor.giveBirth(Actor other, Simulation sim) {
+    var classMirror = reflectClass(other.runtimeType);
+    var instance =
+        classMirror.newInstance(Symbol('spawnChild'), [other, sim]).reflectee;
+    sim.bornThisCycle.putIfAbsent(instance, () => other.location);
+  }
+
   void useSkill({String name}) {
     for (var skill in skills) {
       if (skill.name == name) {
@@ -40,10 +68,5 @@ class Actor {
   void impregnate(Set<Trait> traits) {
     embryoTraits = traits;
     pregnant = true;
-  }
-
-  void giveBirth(Simulation sim) {
-    var child = Actor(embryoTraits, skills, statistics, goals, location);
-    sim.bornThisCycle.add(child);
   }
 }

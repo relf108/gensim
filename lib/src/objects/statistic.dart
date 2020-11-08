@@ -15,6 +15,13 @@ class Statistic {
     this.modifiedBy = modifiedBy;
   }
 
+  Statistic.clone(Statistic other) {
+    name = other.name;
+    value = other.value;
+    maxValue = other.maxValue;
+    modifiedBy = other.modifiedBy;
+  }
+
   void decrease(int amount) {
     value = value - amount;
   }
