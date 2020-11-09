@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:mirrors';
+import 'package:gensim/src/objects/consumable.dart';
 import 'package:meta/meta.dart';
 
 import 'package:gensim/src/objects/goal.dart';
@@ -24,15 +25,15 @@ class Actor {
   Set<Trait> embryoTraits;
   int pregnancyTime = 0;
   bool canCarryChild;
-
-  Actor(
-      {@required Set<Trait> traits,
-      @required Set<Skill> skills,
-      @required Set<Statistic> statistics,
-      @required Set<Goal> goals,
-      @required int breedPriority,
-      bool canCarryChild,
-      SimPoint location}) {
+  Actor({
+    @required Set<Trait> traits,
+    @required Set<Skill> skills,
+    @required Set<Statistic> statistics,
+    @required Set<Goal> goals,
+    @required int breedPriority,
+    bool canCarryChild,
+    SimPoint location,
+  }) {
     this.traits = traits;
     this.skills = skills;
     this.statistics = statistics;

@@ -14,6 +14,6 @@ class Trait {
   Trait.clone(Trait other) {
     name = other.name;
     value = other.value;
-    maxValue = other.value;
+    maxValue = other.maxValue;
   }
 }

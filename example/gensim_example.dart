@@ -1,6 +1,5 @@
-import 'dart:collection';
-
 import 'package:gensim/src/built_in_traits/gestation_period.dart';
+import 'package:gensim/src/extendable_classes/prey.dart';
 import 'package:gensim/src/objects/consumable.dart';
 import 'package:gensim/src/objects/goal.dart';
 import 'package:gensim/src/objects/skill.dart';
@@ -8,7 +7,7 @@ import 'package:gensim/src/objects/stat_modifiers.dart';
 import 'package:gensim/src/objects/statistic.dart';
 import 'package:gensim/src/objects/trait.dart';
 import 'package:gensim/src/simulation.dart';
-import 'test_actor.dart';
+import 'bunny.dart';
 
 void main() {
   var skill1 = Skill(name: 'Talk', function: (str) => print(str));
@@ -34,12 +33,13 @@ void main() {
   };
   var stats = <Statistic>{Statistic.clone(parentHealth)};
   var goalHealth2 = Goal(stats.firstWhere((e) => e.name == 'health'), 10, 0);
-  var actor = TestActor(
+  var actor = Prey(
       traits: traitList,
       skills: skillList,
       statistics: stats,
       goals: {goalHealth2},
-      canCarryChild: false);
+      canCarryChild: false,
+      preyedUponOutput: Consumable(value: 20));
 
   /// If a goals StatModifier is set to an Actor it is assumed thia goal is to get pregnant.
   var traitFem = Trait.clone(height);
@@ -50,16 +50,43 @@ void main() {
   var goalHealth1 = Goal(health1, 30, 0);
   var goals = <Goal>{goalHealth1};
 
-  var hornyActor = TestActor(
+  var hornyActor = Prey(
       traits: traitListFem,
       skills: skillList,
       statistics: {health1},
       goals: goals,
-      canCarryChild: true);
+      canCarryChild: true,
+      preyedUponOutput: Consumable(value: 20));
 
-  var statChangeMap = <Statistic, int>{parentHealth: -2};
+  var statChangeMap = <Statistic, int>{parentHealth: -5};
 
-  var sim = Simulation(10, 10, 100, [actor, hornyActor], [],
-      [Consumable(value: 10, cyclesToRegrow: 5), Consumable(value: 20, cyclesToRegrow: 5), Consumable(value: 20, cyclesToRegrow: 5)], statChangeMap);
+  var sim = Simulation(
+      10,
+      10,
+      2000,
+      [actor, hornyActor],
+      [],
+      [
+        Consumable(value: 10, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+        Consumable(value: 20, cyclesToRegrow: 4),
+      ],
+      statChangeMap);
   sim.run();
 }

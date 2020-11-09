@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:gensim/src/extendable_classes/prey.dart';
 import 'package:gensim/src/objects/consumable.dart';
 import 'package:gensim/src/objects/feature.dart';
 import 'package:gensim/src/objects/stat_modifiers.dart';
@@ -134,14 +135,14 @@ class Simulation {
     }
   }
 
-  void _outputState(var cycle) {
-    for (var actor in actors) {
-      print(
-          'Alive: ${actor.alive}, Goals: ${actor.goals}, Pregnant: ${actor.pregnant}, Traits: ${actor.traits}, Location: ${actor.location}');
-    }
-    print(
-        'Features: ${features}, Consumables: ${consumables}, CurrentCycle: ${cycle}');
-  }
+  // void _outputState(var cycle) {
+  //   for (var actor in actors) {
+  //     print(
+  //         'Alive: ${actor.alive}, Goals: ${actor.goals}, Pregnant: ${actor.pregnant}, Traits: ${actor.traits}, Location: ${actor.location}');
+  //   }
+  //   print(
+  //       'Features: ${features}, Consumables: ${consumables}, CurrentCycle: ${cycle}');
+  // }
 
   void _tryBirth(Actor actor) {
     if (actor.pregnant == true &&
@@ -167,7 +168,7 @@ class Simulation {
           point.contents
               .firstWhere((element) => element is Actor && element != actor),
           actor);
-    } else {
+    } else if (target == StatModifiers.Consumable) {
       Consumable consuming =
           (point.contents.firstWhere((element) => element is Consumable));
       var statName = currentGoal.stat.name;
@@ -177,16 +178,43 @@ class Simulation {
       point.contents.remove(consuming);
       consuming.consumed = true;
       consuming.cyclesLeftToRegrow = consuming.cyclesToRegrow;
+    } else if (target == StatModifiers.Prey) {
+      Prey prey = (point.contents.firstWhere((element) => element is Prey));
+      Consumable consuming = (point.contents
+          .firstWhere((element) => element is Prey)
+          .preyedUponOutput);
+      var statName = currentGoal.stat.name;
+      var statToIncrement =
+          actor.statistics.firstWhere((stat) => stat.name == statName);
+      statToIncrement.value += consuming.value;
+      point.contents.remove(prey);
+      diedThisCycle.add(prey);
     }
     return null;
   }
 
   Set<Trait> _moveActorTowards(
       Actor actor, SimPoint newPoint, target, Goal currentGoal) {
-    if ((actor.location.x == newPoint.x) && (actor.location.y == newPoint.y)) {
-      if (newPoint.contents.length > 1 || target == StatModifiers.Consumable) {
-        return _isOnPoint(actor, target, currentGoal, newPoint);
+    var suitablePartner = false;
+    if (target == StatModifiers.Actor) {
+      var tmp = [];
+      tmp.addAll(newPoint.contents);
+      tmp.remove(actor);
+      for (var partner in tmp) {
+        if (partner.runtimeType == actor.runtimeType) {
+          suitablePartner = true;
+        }
       }
+    } else {
+      suitablePartner = true;
+    }
+    if ((actor.location.x == newPoint.x) &&
+        (actor.location.y == newPoint.y) &&
+        suitablePartner) {
+      //TODO find new way to prevent actors breeding with themselves.
+      //if (newPoint.contents.length > 1 || target == StatModifiers.Consumable || target == ) {
+      return _isOnPoint(actor, target, currentGoal, newPoint);
+      // }
     }
     points.firstWhere((p) => p == actor.location).contents.remove(actor);
     if (actor.location.x < newPoint.x) {
@@ -238,6 +266,17 @@ class Simulation {
       for (var point in points) {
         for (var obj in point.contents) {
           if (obj is Consumable) {
+            if (currentLocation.distanceTo(point) < closestPointDouble) {
+              closestPointDouble = currentLocation.distanceTo(point);
+              closestPoint = point;
+            }
+          }
+        }
+      }
+    } else if (target == StatModifiers.Prey) {
+      for (var point in points) {
+        for (var obj in point.contents) {
+          if (obj is Prey) {
             if (currentLocation.distanceTo(point) < closestPointDouble) {
               closestPointDouble = currentLocation.distanceTo(point);
               closestPoint = point;
@@ -312,7 +351,7 @@ class Simulation {
     return traits;
   }
 
-  Trait _reasonableFluxuation(Trait trait) {
+  Trait _reasonableFluctuation(Trait trait) {
     var newTraitVal;
     if (Random().nextBool()) {
       newTraitVal = trait.value + (trait.value * (Random().nextDouble() / 10));
@@ -339,11 +378,11 @@ class Simulation {
       var crossoverPoint = Random().nextInt(actor1.traits.length);
       for (var i = 0; i < actor1.traits.length; i++) {
         if (i <= crossoverPoint) {
-          child1Traits.add(_reasonableFluxuation(actor2.traits.elementAt(i)));
-          child2Traits.add(_reasonableFluxuation(actor1.traits.elementAt(i)));
+          child1Traits.add(_reasonableFluctuation(actor2.traits.elementAt(i)));
+          child2Traits.add(_reasonableFluctuation(actor1.traits.elementAt(i)));
         } else {
-          child1Traits.add(_reasonableFluxuation(actor1.traits.elementAt(i)));
-          child2Traits.add(_reasonableFluxuation(actor2.traits.elementAt(i)));
+          child1Traits.add(_reasonableFluctuation(actor1.traits.elementAt(i)));
+          child2Traits.add(_reasonableFluctuation(actor2.traits.elementAt(i)));
         }
       }
     } else {
