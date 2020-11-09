@@ -10,4 +10,10 @@ class Trait {
     this.value = value;
     this.maxValue = maxValue;
   }
+
+  Trait.clone(Trait other) {
+    name = other.name;
+    value = other.value;
+    maxValue = other.value;
+  }
 }

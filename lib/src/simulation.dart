@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:math';
 import 'package:gensim/src/objects/consumable.dart';
 import 'package:gensim/src/objects/feature.dart';
@@ -20,6 +19,7 @@ class Simulation {
   SimPoint size;
   List<SimPoint> points = <SimPoint>[];
   Map<Actor, SimPoint> bornThisCycle = {};
+  List<Actor> diedThisCycle = [];
   Map<Statistic, int> statChangeMap = {};
 
   Simulation(
@@ -62,19 +62,32 @@ class Simulation {
     }
   }
 
-  //cycle method exposed to users.
+  //Called each cycle to modify stats passes in
   void cycleStatchanges(Map<Statistic, int> statChangeMap) {
-    for (var stat in statChangeMap.entries) {
-      stat.key.value = stat.key.value + stat.value;
+    for (var parentStat in statChangeMap.entries) {
+      for (var actor in actors) {
+        for (var stat1 in actor.statistics) {
+          if (stat1.name == parentStat.key.name) {
+            stat1.value = stat1.value + parentStat.value;
+          }
+        }
+      }
     }
   }
 
   void _cycle() {
+    for (var actor in diedThisCycle) {
+      actors.remove(actor);
+    }
+    diedThisCycle.clear();
     for (var child in bornThisCycle.entries) {
       add(child.key, child.value);
     }
     bornThisCycle.clear();
+
+    _tryGrow();
     for (var actor in actors) {
+      _tryKill(actor);
       _tryBirth(actor);
       var currentGoal = _findAction(actor.goals);
       if (currentGoal != null) {
@@ -91,6 +104,36 @@ class Simulation {
     }
   }
 
+  void _tryGrow() {
+    for (var consumable in consumables) {
+      if (consumable.consumed) {
+        if (consumable.cyclesLeftToRegrow == 0) {
+          consumable.consumed == false;
+          consumable.cyclesLeftToRegrow = consumable.cyclesToRegrow;
+          points
+              .firstWhere((element) =>
+                  element.x == consumable.location.x &&
+                  consumable.location.y == element.y)
+              .contents
+              .add(consumable);
+        } else {
+          consumable.cyclesLeftToRegrow--;
+        }
+      }
+    }
+  }
+
+  void _tryKill(Actor actor) {
+    for (var stat in actor.statistics) {
+      if (stat.killOwnerValue != null) {
+        if (stat.value <= stat.killOwnerValue) {
+          actor.location.contents.remove(actor);
+          diedThisCycle.add(actor);
+        }
+      }
+    }
+  }
+
   void _outputState(var cycle) {
     for (var actor in actors) {
       print(
@@ -101,13 +144,19 @@ class Simulation {
   }
 
   void _tryBirth(Actor actor) {
-    if (actor.pregnant == true) {
-      //actor.giveBirth(this);
+    if (actor.pregnant == true &&
+        actor.pregnancyTime >=
+            actor.traits
+                .firstWhere((e) => e.name == 'Gestation Period')
+                .value) {
       actor.pregnant = false;
       actor.statistics
           .firstWhere((element) => element.name == 'pregnant')
           .value = 0;
+      actor.pregnancyTime = 0;
       Actor.giveBirth(actor, this);
+    } else if (actor.pregnant == true) {
+      actor.pregnancyTime++;
     }
   }
 
@@ -126,7 +175,8 @@ class Simulation {
           actor.statistics.firstWhere((stat) => stat.name == statName);
       statToIncrement.value += consuming.value;
       point.contents.remove(consuming);
-      //dont remove consumeable from the simulation as it may want to respawn
+      consuming.consumed = true;
+      consuming.cyclesLeftToRegrow = consuming.cyclesToRegrow;
     }
     return null;
   }
@@ -173,7 +223,8 @@ class Simulation {
     if (target == StatModifiers.Actor) {
       for (var point in points) {
         for (var obj in point.contents) {
-          if (obj is Actor) {
+          ///find actors of the opposite sex. Only females seek out sexual partners at this point
+          if (obj is Actor && obj.canCarryChild == false) {
             // && point.contents.firstWhere((element) => element is Actor) != currentLocation.contents.firstWhere((element) => element is Actor
             if (currentLocation.distanceTo(point) < closestPointDouble &&
                 actor.location != point) {
@@ -237,6 +288,7 @@ class Simulation {
     } else if (object is Consumable) {
       consumables.add(object);
       var location = Random().nextInt(size.x * size.y);
+      object.location = points[location];
       points[location].contents.add(object);
     }
   }
@@ -277,12 +329,13 @@ class Simulation {
     return Trait(trait.name, newTraitVal, trait.maxValue);
   }
 
+  ///Create a new trait set for a child actor based on it's parents
   Set<Trait> _breed(Actor actor1, Actor actor2) {
     var child1Traits = <Trait>{};
     var child2Traits = <Trait>{};
     // && actor1.runtimeType == actor2.runtimeType this needs to be put in place once I can have actors give birth to actors
     //of their own subtype.
-    if (actor1.traits.length == actor2.traits.length) {
+    if (actor1.runtimeType == actor2.runtimeType) {
       var crossoverPoint = Random().nextInt(actor1.traits.length);
       for (var i = 0; i < actor1.traits.length; i++) {
         if (i <= crossoverPoint) {
