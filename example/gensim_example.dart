@@ -1,5 +1,4 @@
 import 'package:gensim/src/built_in_traits/gestation_period.dart';
-import 'package:gensim/src/extendable_classes/prey.dart';
 import 'package:gensim/src/objects/consumable.dart';
 import 'package:gensim/src/objects/goal.dart';
 import 'package:gensim/src/objects/skill.dart';
@@ -8,6 +7,7 @@ import 'package:gensim/src/objects/statistic.dart';
 import 'package:gensim/src/objects/trait.dart';
 import 'package:gensim/src/simulation.dart';
 import 'bunny.dart';
+import 'fox.dart';
 
 void main() {
   var skill1 = Skill(name: 'Talk', function: (str) => print(str));
@@ -20,20 +20,31 @@ void main() {
   ///Define a parent statistic and clone this each time you want to create a new instance of it.
   ///Simulation will modify stats based on name so when passing a parent stat into the stat change list,
   ///all child stats are modified.
-  var parentHealth = Statistic(
+  var parentHealthPrey = Statistic(
       name: 'health',
       value: 70,
       maxValue: 100,
       modifiedBy: StatModifiers.Consumable,
       killOwnerValue: 0);
+
+  var parentHealthPredator = Statistic(
+      name: 'fox health',
+      value: 100,
+      maxValue: 100,
+      modifiedBy: StatModifiers.Prey,
+      killOwnerValue: 0);
+
   var traitList = <Trait>{
     Trait.clone(height),
     Trait.clone(weight),
     Trait.clone(gestationPeriod)
   };
-  var stats = <Statistic>{Statistic.clone(parentHealth)};
+  var stats = <Statistic>{
+    Statistic.clone(parentHealthPrey),
+    Statistic.clone(parentHealthPredator)
+  };
   var goalHealth2 = Goal(stats.firstWhere((e) => e.name == 'health'), 10, 0);
-  var actor = Prey(
+  var actor = Bunny(
       traits: traitList,
       skills: skillList,
       statistics: stats,
@@ -46,11 +57,11 @@ void main() {
   var traitFem2 = Trait.clone(weight);
 
   var traitListFem = <Trait>{traitFem, traitFem2, Trait.clone(gestationPeriod)};
-  var health1 = Statistic.clone(parentHealth);
+  var health1 = Statistic.clone(parentHealthPrey);
   var goalHealth1 = Goal(health1, 30, 0);
   var goals = <Goal>{goalHealth1};
 
-  var hornyActor = Prey(
+  var hornyActor = Bunny(
       traits: traitListFem,
       skills: skillList,
       statistics: {health1},
@@ -58,13 +69,24 @@ void main() {
       canCarryChild: true,
       preyedUponOutput: Consumable(value: 20));
 
-  var statChangeMap = <Statistic, int>{parentHealth: -5};
+  var foxHealthGoal =
+      Goal(stats.firstWhere((e) => e.name == 'fox health'), 10, 0);
+
+  var fox = Fox(
+    goals: {foxHealthGoal},
+    skills: {},
+    statistics: {Statistic.clone(parentHealthPredator)},
+    traits: traitList,
+  );
+
+  var statChangeMap = <Statistic, int>{parentHealthPrey: 0,
+  parentHealthPredator: -1};
 
   var sim = Simulation(
       10,
       10,
       2000,
-      [actor, hornyActor],
+      [actor, hornyActor, fox],
       [],
       [
         Consumable(value: 10, cyclesToRegrow: 4),

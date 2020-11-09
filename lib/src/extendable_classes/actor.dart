@@ -25,6 +25,7 @@ class Actor {
   Set<Trait> embryoTraits;
   int pregnancyTime = 0;
   bool canCarryChild;
+  Consumable preyedUponOutput;
   Actor({
     @required Set<Trait> traits,
     @required Set<Skill> skills,
@@ -73,6 +74,7 @@ class Actor {
     alive = other.alive;
     traits = other.embryoTraits;
     skills = other.skills;
+    preyedUponOutput = other.preyedUponOutput;
     canCarryChild = false;
     var newStatistics = <Statistic>{};
     for (var stat in other.statistics) {

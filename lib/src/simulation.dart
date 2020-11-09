@@ -166,7 +166,7 @@ class Simulation {
       currentGoal.stat.value = currentGoal.stat.value + 1;
       return _breed(
           point.contents
-              .firstWhere((element) => element is Actor && element != actor),
+              .firstWhere((element) => element is Actor && element != actor && element.runtimeType == actor.runtimeType),
           actor);
     } else if (target == StatModifiers.Consumable) {
       Consumable consuming =
