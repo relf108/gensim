@@ -1,5 +1,5 @@
-import 'package:gensim/src/extendable_classes/actor.dart';
-import 'package:gensim/src/extendable_classes/prey.dart';
+import 'package:gensim/src/actors/actor.dart';
+import 'package:gensim/src/actors/prey.dart';
 import 'package:gensim/src/objects/consumeables/consumable.dart';
 import 'package:gensim/src/objects/goal.dart';
 import 'package:gensim/src/objects/statistic.dart';

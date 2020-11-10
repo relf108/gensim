@@ -1,5 +1,6 @@
+import 'dart:html';
 import 'dart:math';
-import 'package:gensim/src/extendable_classes/prey.dart';
+import 'package:gensim/src/actors/prey.dart';
 import 'package:gensim/src/objects/consumeables/consumable.dart';
 import 'package:gensim/src/objects/consumeables/meat.dart';
 import 'package:gensim/src/objects/consumeables/plant.dart';
@@ -10,7 +11,7 @@ import 'package:gensim/src/objects/trait.dart';
 import 'package:gensim/src/sim_point.dart';
 import 'package:gensim/src/sim_show.dart';
 
-import 'extendable_classes/actor.dart';
+import 'actors/actor.dart';
 import 'objects/goal.dart';
 
 class Simulation {
@@ -65,6 +66,64 @@ class Simulation {
     }
   }
 
+  void _tryBirth(Actor actor) {
+    if (actor.pregnant == true &&
+        actor.pregnancyTime >=
+            actor.traits
+                .firstWhere((e) => e.name == 'Gestation Period')
+                .value) {
+      actor.pregnant = false;
+      actor.statistics
+          .firstWhere((element) => element.name == 'pregnant')
+          .value = 0;
+      actor.pregnancyTime = 0;
+      Actor.giveBirth(actor, this);
+    } else if (actor.pregnant == true) {
+      actor.pregnancyTime++;
+    }
+  }
+
+  void _tryKill(Actor actor) {
+    for (var stat in actor.statistics) {
+      if (stat.killOwnerValue != null) {
+        if (stat.value <= stat.killOwnerValue) {
+          actor.location.contents.remove(actor);
+          diedThisCycle.add(actor);
+        }
+      }
+    }
+  }
+
+  Set<Trait> _tryMutate(Set<Trait> traits) {
+    ///This is a vauge estimate at the liklihood of a random mution occuring.
+    if (Random().nextInt(1000) <= 6) {
+      ///+1 is neccesary because next int gets random num between 0 and max not inclusive of max
+      var trait = traits.elementAt(Random().nextInt(traits.length));
+      trait.value = Random().nextInt(trait.maxValue + 1);
+      return traits;
+    }
+    return traits;
+  }
+
+  void _tryGrow() {
+    for (var plant in plants) {
+      if (plant.consumed) {
+        if (plant.cyclesLeftToRegrow == 0) {
+          plant.consumed = false;
+          plant.cyclesLeftToRegrow = plant.cyclesToRegrow;
+          points
+              .firstWhere((element) =>
+                  element.x == plant.location.x &&
+                  plant.location.y == element.y)
+              .contents
+              .add(plant);
+        } else {
+          plant.cyclesLeftToRegrow--;
+        }
+      }
+    }
+  }
+
   //Called each cycle to modify stats passes in
   void cycleStatchanges(Map<Statistic, int> statChangeMap) {
     for (var parentStat in statChangeMap.entries) {
@@ -107,62 +166,6 @@ class Simulation {
     }
   }
 
-  void _tryGrow() {
-    for (var plant in plants) {
-      if (plant.consumed) {
-        if (plant.cyclesLeftToRegrow == 0) {
-          plant.consumed == false;
-          plant.cyclesLeftToRegrow = plant.cyclesToRegrow;
-          points
-              .firstWhere((element) =>
-                  element.x == plant.location.x &&
-                  plant.location.y == element.y)
-              .contents
-              .add(plant);
-        } else {
-          plant.cyclesLeftToRegrow--;
-        }
-      }
-    }
-  }
-
-  void _tryKill(Actor actor) {
-    for (var stat in actor.statistics) {
-      if (stat.killOwnerValue != null) {
-        if (stat.value <= stat.killOwnerValue) {
-          actor.location.contents.remove(actor);
-          diedThisCycle.add(actor);
-        }
-      }
-    }
-  }
-
-  // void _outputState(var cycle) {
-  //   for (var actor in actors) {
-  //     print(
-  //         'Alive: ${actor.alive}, Goals: ${actor.goals}, Pregnant: ${actor.pregnant}, Traits: ${actor.traits}, Location: ${actor.location}');
-  //   }
-  //   print(
-  //       'Features: ${features}, Consumables: ${consumables}, CurrentCycle: ${cycle}');
-  // }
-
-  void _tryBirth(Actor actor) {
-    if (actor.pregnant == true &&
-        actor.pregnancyTime >=
-            actor.traits
-                .firstWhere((e) => e.name == 'Gestation Period')
-                .value) {
-      actor.pregnant = false;
-      actor.statistics
-          .firstWhere((element) => element.name == 'pregnant')
-          .value = 0;
-      actor.pregnancyTime = 0;
-      Actor.giveBirth(actor, this);
-    } else if (actor.pregnant == true) {
-      actor.pregnancyTime++;
-    }
-  }
-
   Set<Trait> _isOnPoint(Actor actor, target, Goal currentGoal, SimPoint point) {
     switch (target) {
       case StatModifiers.Actor:
@@ -175,8 +178,8 @@ class Simulation {
             actor);
         break;
       case StatModifiers.Plant:
-        Plant consuming =
-            (point.contents.firstWhere((element) => element is Plant));
+        Plant consuming = (point.contents.firstWhere(
+            (element) => element is Plant && element.consumed == false));
         var statName = currentGoal.stat.name;
         var statToIncrement =
             actor.statistics.firstWhere((stat) => stat.name == statName);
@@ -202,22 +205,10 @@ class Simulation {
 
   Set<Trait> _moveActorTowards(
       Actor actor, SimPoint newPoint, target, Goal currentGoal) {
-    var suitablePartner = false;
-    if (target == StatModifiers.Actor) {
-      var tmp = [];
-      tmp.addAll(newPoint.contents);
-      tmp.remove(actor);
-      for (var partner in tmp) {
-        if (partner.runtimeType == actor.runtimeType) {
-          suitablePartner = true;
-        }
-      }
-    } else {
-      suitablePartner = true;
-    }
+    var canBreed = _canBreed(target, newPoint, actor);
     if ((actor.location.x == newPoint.x) &&
         (actor.location.y == newPoint.y) &&
-        suitablePartner) {
+        canBreed) {
       //TODO find new way to prevent actors breeding with themselves.
       //if (newPoint.contents.length > 1 || target == StatModifiers.Consumable || target == ) {
       return _isOnPoint(actor, target, currentGoal, newPoint);
@@ -250,6 +241,37 @@ class Simulation {
     return null;
   }
 
+  bool _canBreed(target, SimPoint newPoint, Actor actor) {
+    var sameSpecies = false;
+    var diffGender = false;
+    var canBreed = false;
+    if (target == StatModifiers.Actor) {
+      var tmp = [];
+      tmp.addAll(newPoint.contents);
+      tmp.remove(actor);
+      for (var partner in tmp) {
+        if (partner.runtimeType == actor.runtimeType) {
+          sameSpecies = true;
+        }
+        if (partner.canCarryChild == true) {
+          if (actor.canCarryChild == false) {
+            diffGender = true;
+          }
+        } else if (partner.canCarryChild == false) {
+          if (actor.canCarryChild == true) {
+            diffGender = true;
+          }
+        }
+      }
+      if (sameSpecies && diffGender) {
+        canBreed = true;
+      }
+    } else {
+      canBreed = true;
+    }
+    return canBreed;
+  }
+
   ///Returns the nearest point to the location passed in which contains an object of the target type
   SimPoint _findNearest(
       StatModifiers target, SimPoint currentLocation, Actor actor) {
@@ -270,7 +292,7 @@ class Simulation {
     } else if (target == StatModifiers.Plant) {
       for (var point in points) {
         for (var obj in point.contents) {
-          if (obj is Consumable) {
+          if (obj is Plant && obj.consumed == false) {
             if (currentLocation.distanceTo(point) < closestPointDouble) {
               closestPointDouble = currentLocation.distanceTo(point);
               closestPoint = point;
@@ -343,17 +365,6 @@ class Simulation {
       running = false;
       print('Sim complete');
     }
-  }
-
-  Set<Trait> _tryMutate(Set<Trait> traits) {
-    ///This is a vauge estimate at the liklihood of a random mution occuring.
-    if (Random().nextInt(1000) <= 6) {
-      ///+1 is neccesary because next int gets random num between 0 and max not inclusive of max
-      var trait = traits.elementAt(Random().nextInt(traits.length));
-      trait.value = Random().nextInt(trait.maxValue + 1);
-      return traits;
-    }
-    return traits;
   }
 
   Trait _reasonableFluctuation(Trait trait) {

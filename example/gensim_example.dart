@@ -80,7 +80,7 @@ void main() {
     traits: traitList,
   );
 
-  var statChangeMap = <Statistic, int>{parentHealthPrey: 0,
+  var statChangeMap = <Statistic, int>{parentHealthPrey: -5,
   parentHealthPredator: -1};
 
   var sim = Simulation(

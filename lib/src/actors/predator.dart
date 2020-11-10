@@ -1,4 +1,4 @@
-import 'package:gensim/src/extendable_classes/actor.dart';
+import 'package:gensim/src/actors/actor.dart';
 import 'package:gensim/src/objects/goal.dart';
 import 'package:gensim/src/objects/skill.dart';
 import 'package:gensim/src/objects/statistic.dart';
