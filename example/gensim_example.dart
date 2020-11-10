@@ -1,5 +1,6 @@
 import 'package:gensim/src/built_in_traits/gestation_period.dart';
-import 'package:gensim/src/objects/consumable.dart';
+import 'package:gensim/src/objects/consumeables/meat.dart';
+import 'package:gensim/src/objects/consumeables/plant.dart';
 import 'package:gensim/src/objects/goal.dart';
 import 'package:gensim/src/objects/skill.dart';
 import 'package:gensim/src/objects/stat_modifiers.dart';
@@ -24,14 +25,14 @@ void main() {
       name: 'health',
       value: 70,
       maxValue: 100,
-      modifiedBy: StatModifiers.Consumable,
+      modifiedBy: StatModifiers.Plant,
       killOwnerValue: 0);
 
   var parentHealthPredator = Statistic(
       name: 'fox health',
       value: 100,
       maxValue: 100,
-      modifiedBy: StatModifiers.Prey,
+      modifiedBy: StatModifiers.Meat,
       killOwnerValue: 0);
 
   var traitList = <Trait>{
@@ -50,7 +51,7 @@ void main() {
       statistics: stats,
       goals: {goalHealth2},
       canCarryChild: false,
-      preyedUponOutput: Consumable(value: 20));
+      preyedUponOutput: Meat(value: 20));
 
   /// If a goals StatModifier is set to an Actor it is assumed thia goal is to get pregnant.
   var traitFem = Trait.clone(height);
@@ -67,10 +68,10 @@ void main() {
       statistics: {health1},
       goals: goals,
       canCarryChild: true,
-      preyedUponOutput: Consumable(value: 20));
+      preyedUponOutput: Meat(value: 20));
 
   var foxHealthGoal =
-      Goal(stats.firstWhere((e) => e.name == 'fox health'), 10, 0);
+      Goal(stats.firstWhere((e) => e.name == 'fox health'), 20, 0);
 
   var fox = Fox(
     goals: {foxHealthGoal},
@@ -89,25 +90,25 @@ void main() {
       [actor, hornyActor, fox],
       [],
       [
-        Consumable(value: 10, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
-        Consumable(value: 20, cyclesToRegrow: 4),
+        Plant(value: 10, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
+        Plant(value: 20, cyclesToRegrow: 4),
       ],
       statChangeMap);
   sim.run();

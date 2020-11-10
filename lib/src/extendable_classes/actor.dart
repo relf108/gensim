@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'dart:mirrors';
-import 'package:gensim/src/objects/consumable.dart';
+import 'package:gensim/src/objects/consumeables/consumable.dart';
 import 'package:meta/meta.dart';
 
 import 'package:gensim/src/objects/goal.dart';
@@ -26,12 +26,14 @@ class Actor {
   int pregnancyTime = 0;
   bool canCarryChild;
   Consumable preyedUponOutput;
+  Set<Consumable> canEat;
   Actor({
     @required Set<Trait> traits,
     @required Set<Skill> skills,
     @required Set<Statistic> statistics,
     @required Set<Goal> goals,
     @required int breedPriority,
+    @required Set<Consumable> canEat,
     bool canCarryChild,
     SimPoint location,
   }) {
@@ -39,6 +41,7 @@ class Actor {
     this.skills = skills;
     this.statistics = statistics;
     this.goals = goals;
+    this.canEat = canEat;
     if (location != null) {
       this.location = location;
     }
@@ -74,6 +77,7 @@ class Actor {
     alive = other.alive;
     traits = other.embryoTraits;
     skills = other.skills;
+    canEat = other.canEat;
     preyedUponOutput = other.preyedUponOutput;
     canCarryChild = false;
     var newStatistics = <Statistic>{};

@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:gensim/src/extendable_classes/prey.dart';
-import 'package:gensim/src/objects/consumable.dart';
+import 'package:gensim/src/objects/consumeables/consumable.dart';
+import 'package:gensim/src/objects/consumeables/meat.dart';
+import 'package:gensim/src/objects/consumeables/plant.dart';
 import 'package:gensim/src/objects/feature.dart';
 import 'package:gensim/src/objects/stat_modifiers.dart';
 import 'package:gensim/src/objects/statistic.dart';
@@ -16,7 +18,7 @@ class Simulation {
   bool running = true;
   List<Actor> actors = <Actor>[];
   List<Feature> features = <Feature>[];
-  List<Consumable> consumables = <Consumable>[];
+  List<Plant> plants = <Plant>[];
   SimPoint size;
   List<SimPoint> points = <SimPoint>[];
   Map<Actor, SimPoint> bornThisCycle = {};
@@ -106,19 +108,19 @@ class Simulation {
   }
 
   void _tryGrow() {
-    for (var consumable in consumables) {
-      if (consumable.consumed) {
-        if (consumable.cyclesLeftToRegrow == 0) {
-          consumable.consumed == false;
-          consumable.cyclesLeftToRegrow = consumable.cyclesToRegrow;
+    for (var plant in plants) {
+      if (plant.consumed) {
+        if (plant.cyclesLeftToRegrow == 0) {
+          plant.consumed == false;
+          plant.cyclesLeftToRegrow = plant.cyclesToRegrow;
           points
               .firstWhere((element) =>
-                  element.x == consumable.location.x &&
-                  consumable.location.y == element.y)
+                  element.x == plant.location.x &&
+                  plant.location.y == element.y)
               .contents
-              .add(consumable);
+              .add(plant);
         } else {
-          consumable.cyclesLeftToRegrow--;
+          plant.cyclesLeftToRegrow--;
         }
       }
     }
@@ -162,33 +164,38 @@ class Simulation {
   }
 
   Set<Trait> _isOnPoint(Actor actor, target, Goal currentGoal, SimPoint point) {
-    if (target == StatModifiers.Actor) {
-      currentGoal.stat.value = currentGoal.stat.value + 1;
-      return _breed(
-          point.contents
-              .firstWhere((element) => element is Actor && element != actor && element.runtimeType == actor.runtimeType),
-          actor);
-    } else if (target == StatModifiers.Consumable) {
-      Consumable consuming =
-          (point.contents.firstWhere((element) => element is Consumable));
-      var statName = currentGoal.stat.name;
-      var statToIncrement =
-          actor.statistics.firstWhere((stat) => stat.name == statName);
-      statToIncrement.value += consuming.value;
-      point.contents.remove(consuming);
-      consuming.consumed = true;
-      consuming.cyclesLeftToRegrow = consuming.cyclesToRegrow;
-    } else if (target == StatModifiers.Prey) {
-      Prey prey = (point.contents.firstWhere((element) => element is Prey));
-      Consumable consuming = (point.contents
-          .firstWhere((element) => element is Prey)
-          .preyedUponOutput);
-      var statName = currentGoal.stat.name;
-      var statToIncrement =
-          actor.statistics.firstWhere((stat) => stat.name == statName);
-      statToIncrement.value += consuming.value;
-      point.contents.remove(prey);
-      diedThisCycle.add(prey);
+    switch (target) {
+      case StatModifiers.Actor:
+        currentGoal.stat.value = currentGoal.stat.value + 1;
+        return _breed(
+            point.contents.firstWhere((element) =>
+                element is Actor &&
+                element != actor &&
+                element.runtimeType == actor.runtimeType),
+            actor);
+        break;
+      case StatModifiers.Plant:
+        Plant consuming =
+            (point.contents.firstWhere((element) => element is Plant));
+        var statName = currentGoal.stat.name;
+        var statToIncrement =
+            actor.statistics.firstWhere((stat) => stat.name == statName);
+        statToIncrement.value += consuming.value;
+        point.contents.remove(consuming);
+        consuming.consumed = true;
+        consuming.cyclesLeftToRegrow = consuming.cyclesToRegrow;
+        break;
+      case StatModifiers.Meat:
+        Prey prey = (point.contents.firstWhere((element) => element is Prey));
+        Meat consuming = (point.contents
+            .firstWhere((element) => element is Prey)
+            .preyedUponOutput);
+        var statName = currentGoal.stat.name;
+        var statToIncrement =
+            actor.statistics.firstWhere((stat) => stat.name == statName);
+        statToIncrement.value += consuming.value;
+        point.contents.remove(prey);
+        diedThisCycle.add(prey);
     }
     return null;
   }
@@ -251,9 +258,7 @@ class Simulation {
     if (target == StatModifiers.Actor) {
       for (var point in points) {
         for (var obj in point.contents) {
-          ///find actors of the opposite sex. Only females seek out sexual partners at this point
           if (obj is Actor && obj.canCarryChild == false) {
-            // && point.contents.firstWhere((element) => element is Actor) != currentLocation.contents.firstWhere((element) => element is Actor
             if (currentLocation.distanceTo(point) < closestPointDouble &&
                 actor.location != point) {
               closestPointDouble = currentLocation.distanceTo(point);
@@ -262,7 +267,7 @@ class Simulation {
           }
         }
       }
-    } else if (target == StatModifiers.Consumable) {
+    } else if (target == StatModifiers.Plant) {
       for (var point in points) {
         for (var obj in point.contents) {
           if (obj is Consumable) {
@@ -273,7 +278,7 @@ class Simulation {
           }
         }
       }
-    } else if (target == StatModifiers.Prey) {
+    } else if (target == StatModifiers.Meat) {
       for (var point in points) {
         for (var obj in point.contents) {
           if (obj is Prey) {
@@ -325,7 +330,7 @@ class Simulation {
       object.location = points[location];
     } else if (object is Feature) {
     } else if (object is Consumable) {
-      consumables.add(object);
+      plants.add(object);
       var location = Random().nextInt(size.x * size.y);
       object.location = points[location];
       points[location].contents.add(object);
