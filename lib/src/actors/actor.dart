@@ -26,14 +26,12 @@ class Actor {
   int pregnancyTime = 0;
   bool canCarryChild;
   Consumable preyedUponOutput;
-  Set<Consumable> canEat;
   Actor({
     @required Set<Trait> traits,
     @required Set<Skill> skills,
     @required Set<Statistic> statistics,
     @required Set<Goal> goals,
     @required int breedPriority,
-    @required Set<Consumable> canEat,
     bool canCarryChild,
     SimPoint location,
   }) {
@@ -41,7 +39,6 @@ class Actor {
     this.skills = skills;
     this.statistics = statistics;
     this.goals = goals;
-    this.canEat = canEat;
     if (location != null) {
       this.location = location;
     }
@@ -54,6 +51,15 @@ class Actor {
             modifiedBy: StatModifiers.Actor);
         this.statistics.add(pregnancy);
         var getPregnant = Goal(pregnancy, 0, breedPriority);
+        this.goals.add(getPregnant);
+      } else if (canCarryChild == false) {
+        var inseminated = Statistic(
+            name: 'inseminated',
+            value: 0,
+            maxValue: 1,
+            modifiedBy: StatModifiers.Actor);
+        this.statistics.add(inseminated);
+        var getPregnant = Goal(inseminated, 0, breedPriority);
         this.goals.add(getPregnant);
       }
       this.canCarryChild = canCarryChild;
@@ -77,8 +83,6 @@ class Actor {
     alive = other.alive;
     traits = other.embryoTraits;
     skills = other.skills;
-    canEat = other.canEat;
-    preyedUponOutput = other.preyedUponOutput;
     canCarryChild = false;
     var newStatistics = <Statistic>{};
     for (var stat in other.statistics) {
@@ -111,8 +115,21 @@ class Actor {
               .priority);
       goals.add(getPregnant);
       canCarryChild = true;
+    } else {
+      var inseminated = Statistic(
+          name: 'inseminated',
+          value: 0,
+          maxValue: 1,
+          modifiedBy: StatModifiers.Actor);
+      statistics.add(inseminated);
+      var impregnate = Goal(
+          inseminated,
+          0,
+          other.goals
+              .firstWhere((element) => element.stat.name == 'pregnant')
+              .priority);
+      goals.add(impregnate);
     }
-
     location = other.location;
     pregnant = false;
     if (other.location != null) {
@@ -139,6 +156,5 @@ class Actor {
   ///should be null until impregnate method is called.
   void impregnate(Set<Trait> traits) {
     embryoTraits = traits;
-    pregnant = true;
   }
 }

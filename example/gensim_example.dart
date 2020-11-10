@@ -44,7 +44,7 @@ void main() {
     Statistic.clone(parentHealthPrey),
     Statistic.clone(parentHealthPredator)
   };
-  var goalHealth2 = Goal(stats.firstWhere((e) => e.name == 'health'), 10, 0);
+  var goalHealth2 = Goal(stats.firstWhere((e) => e.name == 'health'), 30, 0);
   var actor = Bunny(
       traits: traitList,
       skills: skillList,
@@ -80,14 +80,14 @@ void main() {
     traits: traitList,
   );
 
-  var statChangeMap = <Statistic, int>{parentHealthPrey: -5,
+  var statChangeMap = <Statistic, int>{parentHealthPrey: -2,
   parentHealthPredator: -1};
 
   var sim = Simulation(
       10,
       10,
       2000,
-      [actor, hornyActor, fox],
+      [actor, hornyActor],
       [],
       [
         Plant(value: 10, cyclesToRegrow: 4),

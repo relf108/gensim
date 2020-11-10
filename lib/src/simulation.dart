@@ -1,4 +1,3 @@
-import 'dart:html';
 import 'dart:math';
 import 'package:gensim/src/actors/prey.dart';
 import 'package:gensim/src/objects/consumeables/consumable.dart';
@@ -156,11 +155,7 @@ class Simulation {
         var target = currentGoal.stat.modifiedBy;
         var closestPoint = _findNearest(target, actor.location, actor);
         if (closestPoint != null) {
-          var newTraits =
-              _moveActorTowards(actor, closestPoint, target, currentGoal);
-          if (newTraits != null) {
-            actor.impregnate(newTraits);
-          }
+          _moveActorTowards(actor, closestPoint, target, currentGoal);
         }
       }
     }
@@ -169,12 +164,13 @@ class Simulation {
   Set<Trait> _isOnPoint(Actor actor, target, Goal currentGoal, SimPoint point) {
     switch (target) {
       case StatModifiers.Actor:
-        currentGoal.stat.value = currentGoal.stat.value + 1;
         return _breed(
             point.contents.firstWhere((element) =>
                 element is Actor &&
                 element != actor &&
-                element.runtimeType == actor.runtimeType),
+                element.runtimeType == actor.runtimeType &&
+                element.canCarryChild != actor.canCarryChild
+                && element.pregnant == false),
             actor);
         break;
       case StatModifiers.Plant:
@@ -203,16 +199,13 @@ class Simulation {
     return null;
   }
 
-  Set<Trait> _moveActorTowards(
+  void _moveActorTowards(
       Actor actor, SimPoint newPoint, target, Goal currentGoal) {
     var canBreed = _canBreed(target, newPoint, actor);
     if ((actor.location.x == newPoint.x) &&
         (actor.location.y == newPoint.y) &&
         canBreed) {
-      //TODO find new way to prevent actors breeding with themselves.
-      //if (newPoint.contents.length > 1 || target == StatModifiers.Consumable || target == ) {
-      return _isOnPoint(actor, target, currentGoal, newPoint);
-      // }
+      _isOnPoint(actor, target, currentGoal, newPoint);
     }
     points.firstWhere((p) => p == actor.location).contents.remove(actor);
     if (actor.location.x < newPoint.x) {
@@ -252,19 +245,21 @@ class Simulation {
       for (var partner in tmp) {
         if (partner.runtimeType == actor.runtimeType) {
           sameSpecies = true;
-        }
-        if (partner.canCarryChild == true) {
-          if (actor.canCarryChild == false) {
-            diffGender = true;
+          if (partner.pregnant == false && actor.pregnant == false) {
+            if (partner.canCarryChild == true) {
+              if (actor.canCarryChild == false) {
+                diffGender = true;
+              }
+            } else if (partner.canCarryChild == false) {
+              if (actor.canCarryChild == true) {
+                diffGender = true;
+              }
+            }
           }
-        } else if (partner.canCarryChild == false) {
-          if (actor.canCarryChild == true) {
-            diffGender = true;
-          }
         }
-      }
-      if (sameSpecies && diffGender) {
-        canBreed = true;
+        if (sameSpecies && diffGender) {
+          canBreed = true;
+        }
       }
     } else {
       canBreed = true;
@@ -280,7 +275,7 @@ class Simulation {
     if (target == StatModifiers.Actor) {
       for (var point in points) {
         for (var obj in point.contents) {
-          if (obj is Actor && obj.canCarryChild == false) {
+          if (obj is Actor && obj.canCarryChild == !(actor.canCarryChild)) {
             if (currentLocation.distanceTo(point) < closestPointDouble &&
                 actor.location != point) {
               closestPointDouble = currentLocation.distanceTo(point);
@@ -386,6 +381,22 @@ class Simulation {
 
   ///Create a new trait set for a child actor based on it's parents
   Set<Trait> _breed(Actor actor1, Actor actor2) {
+    Actor femaleActor;
+    if (actor1.canCarryChild) {
+      var pregGoal = actor1.goals
+          .firstWhere((element) => element.stat.name == 'pregnant')
+          .stat;
+      pregGoal.value = pregGoal.value + 1;
+      actor1.pregnant = true;
+      femaleActor = actor1;
+    } else {
+      var pregGoal = actor2.goals
+          .firstWhere((element) => element.stat.name == 'pregnant')
+          .stat;
+      pregGoal.value = pregGoal.value + 1;
+      actor2.pregnant = true;
+      femaleActor = actor2;
+    }
     var child1Traits = <Trait>{};
     var child2Traits = <Trait>{};
     // && actor1.runtimeType == actor2.runtimeType this needs to be put in place once I can have actors give birth to actors
@@ -405,8 +416,10 @@ class Simulation {
       throw Exception('Actors are not of the same species');
     }
     if (Random().nextBool()) {
+      femaleActor.impregnate(child1Traits);
       return _tryMutate(child1Traits);
     } else {
+      femaleActor.impregnate(child2Traits);
       return _tryMutate(child2Traits);
     }
   }

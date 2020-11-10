@@ -8,14 +8,13 @@ import 'package:meta/meta.dart';
 import '../simulation.dart';
 
 class Prey extends Actor {
-  Consumable preyedUponOutput;
   Prey({
     @required Set<Trait> traits,
     @required Set<Skill> skills,
     @required Set<Statistic> statistics,
     @required Set<Goal> goals,
     @required Consumable preyedUponOutput,
-    int breedPriority = 1,
+    @required int breedPriority,
     bool canCarryChild,
   }) : super(
             traits: traits,
