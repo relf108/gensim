@@ -16,6 +16,7 @@ import 'package:gensim/src/simulation.dart';
 ///All actors should have a breed property even if not all members of the species can breed.
 class Actor {
   bool alive = true;
+  int cyclesLeft;
   Set<Trait> traits;
   Set<Skill> skills;
   Set<Statistic> statistics;
@@ -76,10 +77,15 @@ class Actor {
     } else {
       this.canCarryChild = false;
     }
+    cyclesLeft = traits
+        .firstWhere((element) => element.name == 'lifespan')
+        .value
+        .toInt();
   }
 
   ///spawn a child
   Actor.spawnChild(Actor other, Simulation sim) {
+    ///Non gender specific traits.
     alive = other.alive;
     traits = other.embryoTraits;
     skills = other.skills;
@@ -106,6 +112,7 @@ class Actor {
     }
     goals = newGoals;
 
+    ///If child is a female
     if (Random().nextBool()) {
       var pregnancy = Statistic(
           name: 'pregnant',
@@ -122,7 +129,9 @@ class Actor {
       getPregnant.satisfied = false;
       goals.add(getPregnant);
       canCarryChild = true;
-    } else {
+    }
+    ///If the child is male 
+    else {
       var inseminated = Statistic(
           name: 'inseminated',
           value: 0,
@@ -137,11 +146,16 @@ class Actor {
               .priority);
       goals.add(impregnate);
     }
+    ///Non gender specific traits
     location = other.location;
     pregnant = false;
     if (other.location != null) {
       location = other.location;
     }
+    cyclesLeft = traits
+        .firstWhere((element) => element.name == 'lifespan')
+        .value
+        .toInt();
   }
 
   ///Give birth to actor of child actor's type

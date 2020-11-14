@@ -86,11 +86,15 @@ class Simulation {
   }
 
   void _tryKill(Actor actor) {
-    for (var stat in actor.statistics) {
-      if (stat.killOwnerValue != null) {
-        if (stat.value <= stat.killOwnerValue) {
-          actor.location.contents.remove(actor);
-          diedThisCycle.add(actor);
+    if (actor.cyclesLeft <= 0) {
+      diedThisCycle.add(actor);
+    } else {
+      for (var stat in actor.statistics) {
+        if (stat.killOwnerValue != null) {
+          if (stat.value <= stat.killOwnerValue) {
+            actor.location.contents.remove(actor);
+            diedThisCycle.add(actor);
+          }
         }
       }
     }
@@ -151,6 +155,7 @@ class Simulation {
 
     _tryGrow();
     for (var actor in actors) {
+      actor.cyclesLeft--;
       _tryKill(actor);
       _tryBirth(actor);
       var currentGoal = _findAction(actor.goals);
