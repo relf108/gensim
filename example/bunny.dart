@@ -24,9 +24,7 @@ class Bunny extends Prey {
             goals: goals,
             breedPriority: breedPriority,
             canCarryChild: canCarryChild,
-            preyedUponOutput: preyedUponOutput
-            );
+            preyedUponOutput: preyedUponOutput);
 
-  Bunny.spawnChild(Actor other, Simulation sim)
-      : super.spawnChild(other, sim);
+  Bunny.spawnChild(Actor other, Simulation sim) : super.spawnChild(other, sim);
 }

@@ -75,6 +75,9 @@ class Simulation {
       actor.statistics
           .firstWhere((element) => element.name == 'pregnant')
           .value = 0;
+      actor.goals
+          .firstWhere((element) => element.stat.name == 'pregnant')
+          .satisfied = false;
       actor.pregnancyTime = 0;
       Actor.giveBirth(actor, this);
     } else if (actor.pregnant == true) {
@@ -169,8 +172,8 @@ class Simulation {
                 element is Actor &&
                 element != actor &&
                 element.runtimeType == actor.runtimeType &&
-                element.canCarryChild != actor.canCarryChild
-                && element.pregnant == false),
+                element.canCarryChild != actor.canCarryChild &&
+                element.pregnant == false),
             actor);
         break;
       case StatModifiers.Plant:
@@ -272,6 +275,7 @@ class Simulation {
       StatModifiers target, SimPoint currentLocation, Actor actor) {
     var closestPoint;
     var closestPointDouble = SimPoint(0, 0).distanceTo(size);
+    var avgHealthOfPeers = 0;
     if (target == StatModifiers.Actor) {
       for (var point in points) {
         for (var obj in point.contents) {
@@ -288,9 +292,13 @@ class Simulation {
       for (var point in points) {
         for (var obj in point.contents) {
           if (obj is Plant && obj.consumed == false) {
-            if (currentLocation.distanceTo(point) < closestPointDouble) {
+            if ((currentLocation.distanceTo(point) < closestPointDouble) &&
+                (obj.getLocalAvgHealth(obj.getLocalActors(points), actor) >
+                    avgHealthOfPeers)) {
               closestPointDouble = currentLocation.distanceTo(point);
               closestPoint = point;
+              avgHealthOfPeers =
+                  obj.getLocalAvgHealth(obj.getLocalActors(points), actor);
             }
           }
         }

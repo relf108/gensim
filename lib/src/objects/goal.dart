@@ -12,9 +12,16 @@ class Goal {
     this.priority = priority;
   }
 
-  Goal.clone(Goal other) {
-    stat = Statistic(name: other.stat.name, value: other.stat.value, maxValue: other.stat.maxValue,
-        modifiedBy: other.stat.modifiedBy);
+  Goal.clone(Goal other, {Statistic overrideStat}) {
+    if (overrideStat != null) {
+      stat = overrideStat;
+    } else {
+      stat = Statistic(
+          name: other.stat.name,
+          value: other.stat.value,
+          maxValue: other.stat.maxValue,
+          modifiedBy: other.stat.modifiedBy);
+    }
     priority = other.priority;
     satisfied = other.satisfied;
     percentileToSatisfy = other.percentileToSatisfy;

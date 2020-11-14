@@ -95,7 +95,13 @@ class Actor {
     var newGoals = <Goal>{};
     for (var goal in other.goals) {
       if (goal.stat.name != 'pregnant') {
-        newGoals.add(Goal.clone(goal));
+        if (goal.stat.name == 'health') {
+          newGoals.add(Goal.clone(goal,
+              overrideStat: statistics
+                  .firstWhere((element) => element.name == 'health')));
+        } else {
+          newGoals.add(Goal.clone(goal));
+        }
       }
     }
     goals = newGoals;
@@ -113,6 +119,7 @@ class Actor {
           other.goals
               .firstWhere((element) => element.stat.name == 'pregnant')
               .priority);
+      getPregnant.satisfied = false;
       goals.add(getPregnant);
       canCarryChild = true;
     } else {

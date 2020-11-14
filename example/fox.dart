@@ -8,8 +8,8 @@ import 'package:gensim/src/simulation.dart';
 import 'package:meta/meta.dart';
 import 'package:gensim/src/actors/predator.dart';
 
-class Fox extends Predator{
-    Fox(
+class Fox extends Predator {
+  Fox(
       {@required Set<Trait> traits,
       @required Set<Skill> skills,
       @required Set<Statistic> statistics,
@@ -18,14 +18,13 @@ class Fox extends Predator{
       bool canCarryChild,
       Consumable preyedUponOutput})
       : super(
-            traits: traits,
-            skills: skills,
-            statistics: statistics,
-            goals: goals,
-            breedPriority: breedPriority,
-            canCarryChild: canCarryChild,
-            );
+          traits: traits,
+          skills: skills,
+          statistics: statistics,
+          goals: goals,
+          breedPriority: breedPriority,
+          canCarryChild: canCarryChild,
+        );
 
-  Fox.spawnChild(Actor other, Simulation sim)
-      : super.spawnChild(other, sim);
+  Fox.spawnChild(Actor other, Simulation sim) : super.spawnChild(other, sim);
 }

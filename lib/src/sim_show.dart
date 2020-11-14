@@ -10,9 +10,9 @@ class SimShow {
         var point = sim.points
             .firstWhere((element) => element.x == x && element.y == y);
         if (point.contents.isNotEmpty) {
-          printStr += ('|${point.contents.first.runtimeType}${point.contents.length}|');
-        }
-        else{
+          printStr +=
+              ('|${point.contents.first.runtimeType}${point.contents.length}|');
+        } else {
           printStr += ('|  EMPTY  |');
         }
       }

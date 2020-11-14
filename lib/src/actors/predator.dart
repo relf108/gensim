@@ -15,12 +15,13 @@ class Predator extends Actor {
     @required int breedPriority,
     bool canCarryChild,
   }) : super(
-            traits: traits,
-            skills: skills,
-            statistics: statistics,
-            goals: goals,
-            breedPriority: breedPriority,
-            canCarryChild: canCarryChild,);
+          traits: traits,
+          skills: skills,
+          statistics: statistics,
+          goals: goals,
+          breedPriority: breedPriority,
+          canCarryChild: canCarryChild,
+        );
 
   Predator.spawnChild(Actor other, Simulation sim)
       : super.spawnChild(other, sim);

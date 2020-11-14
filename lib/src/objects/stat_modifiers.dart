@@ -1,1 +1,1 @@
-enum StatModifiers { Actor, Meat, Plant}
+enum StatModifiers { Actor, Meat, Plant }
