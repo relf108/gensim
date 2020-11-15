@@ -1,14 +1,4 @@
-import 'package:gensim/src/built_in_traits/fear_of_sick_kin.dart';
-import 'package:gensim/src/built_in_traits/gestation_period.dart';
-import 'package:gensim/src/built_in_traits/lifespan.dart';
-import 'package:gensim/src/objects/consumeables/meat.dart';
-import 'package:gensim/src/objects/consumeables/plant.dart';
-import 'package:gensim/src/objects/goal.dart';
-import 'package:gensim/src/objects/skill.dart';
-import 'package:gensim/src/objects/stat_modifiers.dart';
-import 'package:gensim/src/objects/statistic.dart';
-import 'package:gensim/src/objects/trait.dart';
-import 'package:gensim/src/simulation.dart';
+import 'package:gensim/gensim.dart';
 import 'bunny.dart';
 import 'fox.dart';
 
@@ -51,7 +41,7 @@ void main() {
     Statistic.clone(parentHealthPredator)
   };
   var goalHealth2 = Goal(stats.firstWhere((e) => e.name == 'health'), 30, 0);
-  var actor = Bunny(
+  var maleActor = Bunny(
       traits: traitList,
       skills: skillList,
       statistics: {stats.firstWhere((e) => e.name == 'health')},
@@ -74,7 +64,7 @@ void main() {
   var goalHealth1 = Goal(health1, 30, 0);
   var goals = <Goal>{goalHealth1};
 
-  var hornyActor = Bunny(
+  var femaleActor = Bunny(
       traits: traitListFem,
       skills: skillList,
       statistics: {health1},
@@ -101,7 +91,7 @@ void main() {
       10,
       10,
       10000,
-      [actor, hornyActor],
+      [maleActor, femaleActor, fox],
       [],
       [
         Plant(value: 10, cyclesToRegrow: 10),

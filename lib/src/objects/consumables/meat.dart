@@ -1,5 +1,4 @@
-import 'package:gensim/src/objects/consumeables/consumable.dart';
-
+import 'package:gensim/gensim.dart';
 import 'package:meta/meta.dart';
 
 class Meat extends Consumable {

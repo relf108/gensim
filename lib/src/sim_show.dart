@@ -1,4 +1,5 @@
-import 'package:gensim/src/simulation.dart';
+
+import 'package:gensim/gensim.dart';
 
 class SimShow {
   static void printSim(Simulation sim) {

@@ -1,11 +1,4 @@
-import 'package:gensim/src/actors/actor.dart';
-import 'package:gensim/src/actors/prey.dart';
-import 'package:gensim/src/objects/consumeables/consumable.dart';
-import 'package:gensim/src/objects/goal.dart';
-import 'package:gensim/src/objects/statistic.dart';
-import 'package:gensim/src/objects/trait.dart';
-import 'package:gensim/src/objects/skill.dart';
-import 'package:gensim/src/simulation.dart';
+import 'package:gensim/gensim.dart';
 import 'package:meta/meta.dart';
 
 class Bunny extends Prey {

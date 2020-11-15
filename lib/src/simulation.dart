@@ -1,8 +1,7 @@
 import 'dart:math';
 import 'package:gensim/src/actors/prey.dart';
-import 'package:gensim/src/objects/consumeables/consumable.dart';
-import 'package:gensim/src/objects/consumeables/meat.dart';
-import 'package:gensim/src/objects/consumeables/plant.dart';
+import 'package:gensim/src/objects/consumables/meat.dart';
+import 'package:gensim/src/objects/consumables/plant.dart';
 import 'package:gensim/src/objects/feature.dart';
 import 'package:gensim/src/objects/stat_modifiers.dart';
 import 'package:gensim/src/objects/statistic.dart';
@@ -10,6 +9,7 @@ import 'package:gensim/src/objects/trait.dart';
 import 'package:gensim/src/sim_point.dart';
 import 'package:gensim/src/sim_show.dart';
 
+import '../gensim.dart';
 import 'actors/actor.dart';
 import 'objects/goal.dart';
 

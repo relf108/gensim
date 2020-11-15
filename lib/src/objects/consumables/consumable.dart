@@ -1,5 +1,4 @@
-import 'package:gensim/src/actors/actor.dart';
-import 'package:gensim/src/sim_point.dart';
+import 'package:gensim/gensim.dart';
 import 'package:meta/meta.dart';
 
 class Consumable {
@@ -9,7 +8,7 @@ class Consumable {
   Consumable({@required var value}) {
     this.value = value;
   }
-
+  
   List<SimPoint> getPointsToCheck(
       List<SimPoint> points, int radius, int maxX, int maxY) {
     var result = <SimPoint>[];
@@ -43,7 +42,6 @@ class Consumable {
     return result;
   }
 
-//TODO untested
   List<Actor> getLocalActors(List<SimPoint> points) {
     var result = <Actor>[];
     var pointsInRadius = getPointsToCheck(points, 4, 10, 10);

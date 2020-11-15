@@ -1,4 +1,4 @@
-import 'package:gensim/src/objects/statistic.dart';
+import 'package:gensim/gensim.dart';
 
 class Goal {
   Statistic stat;

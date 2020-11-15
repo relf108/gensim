@@ -1,4 +1,4 @@
-import 'package:gensim/src/objects/trait.dart';
+import 'package:gensim/gensim.dart';
 import 'package:meta/meta.dart';
 
 class GestationPeriod extends Trait {

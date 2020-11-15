@@ -1,4 +1,4 @@
-import 'package:gensim/src/objects/stat_modifiers.dart';
+import 'package:gensim/gensim.dart';
 import 'package:meta/meta.dart';
 
 ///Statistics are non genetic traits.
