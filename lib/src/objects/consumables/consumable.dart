@@ -3,7 +3,7 @@ import 'package:gensim/src/actors/actor_impl.dart';
 import 'package:gensim/src/objects/organism.dart';
 import 'package:meta/meta.dart';
 
-class Consumable implements Organism{
+class Consumable implements Organism {
   ///an integer representing the positive or negative effect or consuming this object
   int value;
   SimPoint location;

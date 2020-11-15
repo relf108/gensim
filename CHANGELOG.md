@@ -1,3 +1,6 @@
+# 0.0.7
+Major refactoring to avoid using reflection when creating new instances of users actor classes.
+
 # 0.0.6
 Added comments to all public methods... I think
 Reformateed example code and added lots of comments.
