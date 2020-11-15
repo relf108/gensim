@@ -130,7 +130,8 @@ class Actor {
       goals.add(getPregnant);
       canCarryChild = true;
     }
-    ///If the child is male 
+
+    ///If the child is male
     else {
       var inseminated = Statistic(
           name: 'inseminated',
@@ -146,6 +147,7 @@ class Actor {
               .priority);
       goals.add(impregnate);
     }
+
     ///Non gender specific traits
     location = other.location;
     pregnant = false;
