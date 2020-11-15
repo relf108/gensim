@@ -1,18 +1,20 @@
 import 'dart:math';
 import 'package:gensim/gensim.dart';
+import 'package:gensim/src/objects/thing.dart';
 import 'package:meta/meta.dart';
+import 'actors/actor_impl.dart';
 import 'sim_show.dart';
 
 class Simulation {
   int maxCycles;
   bool running = true;
-  List<Actor> actors = <Actor>[];
+  List<ActorImpl> actors = <ActorImpl>[];
   List<Feature> features = <Feature>[];
   List<Plant> plants = <Plant>[];
   SimPoint size;
   List<SimPoint> points = <SimPoint>[];
-  Map<Actor, SimPoint> bornThisCycle = {};
-  List<Actor> diedThisCycle = [];
+  Map<ActorImpl, SimPoint> bornThisCycle = {};
+  List<ActorImpl> diedThisCycle = [];
   Map<Statistic, int> statChangeMap = {};
 
   Simulation(
@@ -30,14 +32,20 @@ class Simulation {
       }
     }
     this.maxCycles = maxCycles;
-    for (var feature in features) {
-      add(feature);
+    if (features != null) {
+      for (var feature in features) {
+        add(feature);
+      }
     }
-    for (var consumable in consumables) {
-      add(consumable);
+    if (consumables != null) {
+      for (var consumable in consumables) {
+        add(consumable);
+      }
     }
     for (var actor in actors) {
-      add(actor);
+      //convert actor to impl
+      var impl = ActorImpl(actor: actor);
+      add(impl);
     }
     this.statChangeMap.addAll(statChangeMap);
   }
@@ -56,31 +64,32 @@ class Simulation {
     }
   }
 
-  void _tryBirth(Actor actor) {
-    if (actor.pregnant == true &&
-        actor.pregnancyTime >=
-            actor.traits
+  void _tryBirth(ActorImpl actorImpl) {
+    if (actorImpl.pregnant == true &&
+        actorImpl.pregnancyTime >=
+            actorImpl.actor.traits
                 .firstWhere((e) => e.name == 'Gestation Period')
                 .value) {
-      actor.pregnant = false;
-      actor.statistics
+      actorImpl.pregnant = false;
+      actorImpl.actor.statistics
           .firstWhere((element) => element.name == 'pregnant')
           .value = 0;
-      actor.goals
+      actorImpl.actor.goals
           .firstWhere((element) => element.stat.name == 'pregnant')
           .satisfied = false;
-      actor.pregnancyTime = 0;
-      Actor.giveBirth(actor, this);
-    } else if (actor.pregnant == true) {
-      actor.pregnancyTime++;
+      actorImpl.pregnancyTime = 0;
+      Actor child = actorImpl.actor.giveBirth();
+      ActorImpl.giveBirth(actorImpl, this, child);
+    } else if (actorImpl.pregnant == true) {
+      actorImpl.pregnancyTime++;
     }
   }
 
-  void _tryKill(Actor actor) {
+  void _tryKill(ActorImpl actor) {
     if (actor.cyclesLeft <= 0) {
       diedThisCycle.add(actor);
     } else {
-      for (var stat in actor.statistics) {
+      for (var stat in actor.actor.statistics) {
         if (stat.killOwnerValue != null) {
           if (stat.value <= stat.killOwnerValue) {
             actor.location.contents.remove(actor);
@@ -125,7 +134,7 @@ class Simulation {
   void _cycleStatchanges(Map<Statistic, int> statChangeMap) {
     for (var parentStat in statChangeMap.entries) {
       for (var actor in actors) {
-        for (var stat1 in actor.statistics) {
+        for (var stat1 in actor.actor.statistics) {
           if (stat1.name == parentStat.key.name) {
             stat1.value = stat1.value + parentStat.value;
           }
@@ -149,7 +158,7 @@ class Simulation {
       actor.cyclesLeft--;
       _tryKill(actor);
       _tryBirth(actor);
-      var currentGoal = _findAction(actor.goals);
+      var currentGoal = _findAction(actor.actor.goals);
       if (currentGoal != null) {
         var target = currentGoal.stat.modifiedBy;
         var closestPoint = _findNearest(target, actor.location, actor);
@@ -160,15 +169,16 @@ class Simulation {
     }
   }
 
-  Set<Trait> _isOnPoint(Actor actor, target, Goal currentGoal, SimPoint point) {
+  Set<Trait> _isOnPoint(
+      ActorImpl actor, target, Goal currentGoal, SimPoint point) {
     switch (target) {
       case StatModifiers.Actor:
         return _breed(
             point.contents.firstWhere((element) =>
-                element is Actor &&
+                element is ActorImpl &&
                 element != actor &&
                 element.runtimeType == actor.runtimeType &&
-                element.canCarryChild != actor.canCarryChild &&
+                element.actor.canCarryChild != actor.actor.canCarryChild &&
                 element.pregnant == false),
             actor);
         break;
@@ -177,20 +187,20 @@ class Simulation {
             (element) => element is Plant && element.consumed == false));
         var statName = currentGoal.stat.name;
         var statToIncrement =
-            actor.statistics.firstWhere((stat) => stat.name == statName);
+            actor.actor.statistics.firstWhere((stat) => stat.name == statName);
         statToIncrement.value += consuming.value;
         point.contents.remove(consuming);
         consuming.consumed = true;
         consuming.cyclesLeftToRegrow = consuming.cyclesToRegrow;
         break;
       case StatModifiers.Meat:
-        Prey prey = (point.contents.firstWhere((element) => element is Prey));
-        Meat consuming = (point.contents
-            .firstWhere((element) => element is Prey)
-            .preyedUponOutput);
+        ActorImpl prey =
+            (point.contents.firstWhere((element) => element.actor is Prey));
+
+        Meat consuming = prey.actor.preyedUponOutput;
         var statName = currentGoal.stat.name;
         var statToIncrement =
-            actor.statistics.firstWhere((stat) => stat.name == statName);
+            actor.actor.statistics.firstWhere((stat) => stat.name == statName);
         statToIncrement.value += consuming.value;
         point.contents.remove(prey);
         diedThisCycle.add(prey);
@@ -199,7 +209,7 @@ class Simulation {
   }
 
   void _moveActorTowards(
-      Actor actor, SimPoint newPoint, target, Goal currentGoal) {
+      ActorImpl actor, SimPoint newPoint, target, Goal currentGoal) {
     var canBreed = _canBreed(target, newPoint, actor);
     if ((actor.location.x == newPoint.x) &&
         (actor.location.y == newPoint.y) &&
@@ -233,7 +243,7 @@ class Simulation {
     return null;
   }
 
-  bool _canBreed(target, SimPoint newPoint, Actor actor) {
+  bool _canBreed(StatModifiers target, SimPoint newPoint, ActorImpl actor) {
     var sameSpecies = false;
     var diffGender = false;
     var canBreed = false;
@@ -242,16 +252,18 @@ class Simulation {
       tmp.addAll(newPoint.contents);
       tmp.remove(actor);
       for (var partner in tmp) {
-        if (partner.runtimeType == actor.runtimeType) {
-          sameSpecies = true;
-          if (partner.pregnant == false && actor.pregnant == false) {
-            if (partner.canCarryChild == true) {
-              if (actor.canCarryChild == false) {
-                diffGender = true;
-              }
-            } else if (partner.canCarryChild == false) {
-              if (actor.canCarryChild == true) {
-                diffGender = true;
+        if (partner is ActorImpl) {
+          if (partner.actor.runtimeType == actor.actor.runtimeType) {
+            sameSpecies = true;
+            if (partner.pregnant == false && actor.pregnant == false) {
+              if (partner.actor.canCarryChild == true) {
+                if (actor.actor.canCarryChild == false) {
+                  diffGender = true;
+                }
+              } else if (partner.actor.canCarryChild == false) {
+                if (actor.actor.canCarryChild == true) {
+                  diffGender = true;
+                }
               }
             }
           }
@@ -268,14 +280,15 @@ class Simulation {
 
   ///Returns the nearest point to the location passed in which contains an object of the target type
   SimPoint _findNearest(
-      StatModifiers target, SimPoint currentLocation, Actor actor) {
+      StatModifiers target, SimPoint currentLocation, ActorImpl actor) {
     var closestPoint;
     var closestPointDouble = SimPoint(0, 0).distanceTo(size);
     var avgHealthOfPeers = 0;
     if (target == StatModifiers.Actor) {
       for (var point in points) {
         for (var obj in point.contents) {
-          if (obj is Actor && obj.canCarryChild == !(actor.canCarryChild)) {
+          if (obj is ActorImpl &&
+              obj.actor.canCarryChild == !(actor.actor.canCarryChild)) {
             if (currentLocation.distanceTo(point) < closestPointDouble &&
                 actor.location != point) {
               closestPointDouble = currentLocation.distanceTo(point);
@@ -302,10 +315,12 @@ class Simulation {
     } else if (target == StatModifiers.Meat) {
       for (var point in points) {
         for (var obj in point.contents) {
-          if (obj is Prey) {
-            if (currentLocation.distanceTo(point) < closestPointDouble) {
-              closestPointDouble = currentLocation.distanceTo(point);
-              closestPoint = point;
+          if (obj is ActorImpl) {
+            if (obj.actor is Prey) {
+              if (currentLocation.distanceTo(point) < closestPointDouble) {
+                closestPointDouble = currentLocation.distanceTo(point);
+                closestPoint = point;
+              }
             }
           }
         }
@@ -334,8 +349,8 @@ class Simulation {
     running = false;
   }
 
-  void add(Object object, [SimPoint parentLocation]) {
-    if (object is Actor) {
+  void add(Thing object, [SimPoint parentLocation]) {
+    if (object is ActorImpl) {
       actors.add(object);
       var location;
       if (parentLocation == null) {
@@ -388,17 +403,17 @@ class Simulation {
   }
 
   ///Create a new trait set for a child actor based on it's parents
-  Set<Trait> _breed(Actor actor1, Actor actor2) {
-    Actor femaleActor;
-    if (actor1.canCarryChild) {
-      var pregGoal = actor1.goals
+  Set<Trait> _breed(ActorImpl actor1, ActorImpl actor2) {
+    ActorImpl femaleActor;
+    if (actor1.actor.canCarryChild) {
+      var pregGoal = actor1.actor.goals
           .firstWhere((element) => element.stat.name == 'pregnant')
           .stat;
       pregGoal.value = pregGoal.value + 1;
       actor1.pregnant = true;
       femaleActor = actor1;
     } else {
-      var pregGoal = actor2.goals
+      var pregGoal = actor2.actor.goals
           .firstWhere((element) => element.stat.name == 'pregnant')
           .stat;
       pregGoal.value = pregGoal.value + 1;
@@ -410,14 +425,18 @@ class Simulation {
     // && actor1.runtimeType == actor2.runtimeType this needs to be put in place once I can have actors give birth to actors
     //of their own subtype.
     if (actor1.runtimeType == actor2.runtimeType) {
-      var crossoverPoint = Random().nextInt(actor1.traits.length);
-      for (var i = 0; i < actor1.traits.length; i++) {
+      var crossoverPoint = Random().nextInt(actor1.actor.traits.length);
+      for (var i = 0; i < actor1.actor.traits.length; i++) {
         if (i <= crossoverPoint) {
-          child1Traits.add(_reasonableFluctuation(actor2.traits.elementAt(i)));
-          child2Traits.add(_reasonableFluctuation(actor1.traits.elementAt(i)));
+          child1Traits
+              .add(_reasonableFluctuation(actor2.actor.traits.elementAt(i)));
+          child2Traits
+              .add(_reasonableFluctuation(actor1.actor.traits.elementAt(i)));
         } else {
-          child1Traits.add(_reasonableFluctuation(actor1.traits.elementAt(i)));
-          child2Traits.add(_reasonableFluctuation(actor2.traits.elementAt(i)));
+          child1Traits
+              .add(_reasonableFluctuation(actor1.actor.traits.elementAt(i)));
+          child2Traits
+              .add(_reasonableFluctuation(actor2.actor.traits.elementAt(i)));
         }
       }
     } else {

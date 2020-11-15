@@ -1,23 +1,35 @@
 import 'package:gensim/gensim.dart';
 import 'package:meta/meta.dart';
 
-class Bunny extends Prey {
-  Bunny(
-      {@required Set<Trait> traits,
-      @required Set<Skill> skills,
-      @required Set<Statistic> statistics,
-      @required Set<Goal> goals,
-      int breedPriority = 1,
-      bool canCarryChild,
-      Consumable preyedUponOutput})
-      : super(
-            traits: traits,
-            skills: skills,
-            statistics: statistics,
-            goals: goals,
-            breedPriority: breedPriority,
-            canCarryChild: canCarryChild,
-            preyedUponOutput: preyedUponOutput);
+class Bunny extends Prey<Bunny> {
+  @override
+  Set<Trait> traits;
+  @override
+  Set<Skill> skills;
+  @override
+  Set<Statistic> statistics;
+  @override
+  Set<Goal> goals;
+  @override
+  int breedPriority;
+  @override
+  bool canCarryChild;
+  @override
+  Consumable preyedUponOutput;
 
-  Bunny.spawnChild(Actor other, Simulation sim) : super.spawnChild(other, sim);
+  Bunny(
+      {@required this.traits,
+      @required this.skills,
+      @required this.statistics,
+      @required this.goals,
+      this.breedPriority = 1,
+      this.canCarryChild,
+      this.preyedUponOutput});
+
+  Bunny.createNewBorn();
+  
+  @override
+  Bunny giveBirth() {
+    return Bunny.createNewBorn();
+  }
 }

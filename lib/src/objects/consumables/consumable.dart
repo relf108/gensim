@@ -1,7 +1,9 @@
 import 'package:gensim/gensim.dart';
+import 'package:gensim/src/actors/actor_impl.dart';
+import 'package:gensim/src/objects/organism.dart';
 import 'package:meta/meta.dart';
 
-class Consumable {
+class Consumable implements Organism{
   ///an integer representing the positive or negative effect or consuming this object
   int value;
   SimPoint location;
@@ -43,12 +45,12 @@ class Consumable {
   }
 
   ///Returns a list of actors surrounding this object
-  List<Actor> getLocalActors(List<SimPoint> points) {
-    var result = <Actor>[];
+  List<ActorImpl> getLocalActors(List<SimPoint> points) {
+    var result = <ActorImpl>[];
     var pointsInRadius = _getPointsToCheck(points, 4, 10, 10);
     for (var point in pointsInRadius) {
       for (var obj in point.contents) {
-        if (obj is Actor) {
+        if (obj is ActorImpl) {
           result.add(obj);
         }
       }
@@ -57,7 +59,7 @@ class Consumable {
   }
 
   ///Returns the local health average of actors around this object
-  int getLocalAvgHealth(List<Actor> localActors, Actor current) {
+  int getLocalAvgHealth(List<ActorImpl> localActors, ActorImpl current) {
     var tmpMe;
     for (var me in localActors) {
       if (me == current) {
@@ -71,6 +73,7 @@ class Consumable {
     var i = 0;
     while (i < localActors.length) {
       overallHealth += localActors[i]
+          .actor
           .statistics
           .firstWhere((element) => element.name.toString().contains('health'))
           .value;
@@ -80,7 +83,7 @@ class Consumable {
     if (i > 0) {
       return overallHealth ~/ i;
     } else {
-      return current.traits
+      return current.actor.traits
           .firstWhere((element) => element.name == 'fear of sick kin')
           .value
           .toInt();
