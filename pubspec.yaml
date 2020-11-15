@@ -1,5 +1,5 @@
 name: gensim
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/relf108/gensim
 description: A starting point for Dart libraries or applications.
 environment: 
