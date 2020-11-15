@@ -8,7 +8,7 @@ class Consumable {
   Consumable({@required var value}) {
     this.value = value;
   }
-  
+
   List<SimPoint> getPointsToCheck(
       List<SimPoint> points, int radius, int maxX, int maxY) {
     var result = <SimPoint>[];
