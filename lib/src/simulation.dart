@@ -41,6 +41,7 @@ class Simulation {
     }
     this.statChangeMap.addAll(statChangeMap);
   }
+
   ///Watch her go
   void run() {
     var cycleCount = 0;

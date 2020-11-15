@@ -1,3 +1,7 @@
+# 0.0.6
+Added comments to all public methods... I think
+Reformateed example code and added lots of comments.
+
 # 0.0.5
 updated exports to make API accesible
 udpate gitignore

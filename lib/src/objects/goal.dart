@@ -11,6 +11,7 @@ class Goal {
     this.percentileToSatisfy = percentileToSatisfy;
     this.priority = priority;
   }
+
   ///Returns a new Goal instance with the same values as the passed in one.
   Goal.clone(Goal other, {Statistic overrideStat}) {
     if (overrideStat != null) {
