@@ -25,27 +25,12 @@ class Statistic {
     }
   }
 
+  ///Returns a new Statistic instance with the same values as the passed in one.
   Statistic.clone(Statistic other) {
     name = other.name;
     value = other.value;
     maxValue = other.maxValue;
     modifiedBy = other.modifiedBy;
     killOwnerValue = other.killOwnerValue;
-  }
-
-  void decrease(int amount) {
-    value = value - amount;
-  }
-
-  void increase(int amount) {
-    value = value + amount;
-  }
-
-  void increment() {
-    value++;
-  }
-
-  void decrement() {
-    value--;
   }
 }

@@ -57,6 +57,8 @@ void main() {
   var maleHealth = Statistic.clone(statsPrey.first);
   var goalMaleStayAlive = Goal(maleHealth, 30, 0);
 
+  ///The bunny is simply an extension of the prey class.
+  ///Avoid using the prey class directly.
   ///This actor cannot carry a child so he is set to male.
   ///That being said he still has female specific traits
   ///which may be passed down to a daughter.
@@ -72,6 +74,8 @@ void main() {
   var femaleHealth = Statistic.clone(statsPrey.first);
   var goalFemaleStayAlive = Goal(femaleHealth, 30, 0);
 
+  ///The bunny is simply an extension of the prey class.
+  ///Avoid using the prey class directly
   ///Make certain the same stat instance is passed into
   ///a goal which should be tracking it.
   var femaleActor = Bunny(
@@ -82,6 +86,8 @@ void main() {
       canCarryChild: true,
       preyedUponOutput: Meat(value: 20));
 
+  ///The fox is simply an extension of the predator class.
+  ///Avoid using the prey class directly
   ///Given there is only one fox we can use the parent stats and goals for predators.
   var fox = Fox(
     goals: {Goal(parentHealthPredator, 20, 0)},

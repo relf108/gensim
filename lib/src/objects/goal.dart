@@ -11,7 +11,7 @@ class Goal {
     this.percentileToSatisfy = percentileToSatisfy;
     this.priority = priority;
   }
-
+  ///Returns a new Goal instance with the same values as the passed in one.
   Goal.clone(Goal other, {Statistic overrideStat}) {
     if (overrideStat != null) {
       stat = overrideStat;
@@ -27,6 +27,8 @@ class Goal {
     percentileToSatisfy = other.percentileToSatisfy;
   }
 
+  ///Try to satisfy this goal
+  ///returns true if succesful and false if not.
   bool trySatisfy() {
     if (stat.value >=
         stat.maxValue - (stat.maxValue * (percentileToSatisfy / 100))) {

@@ -19,6 +19,8 @@ class Actor {
   int pregnancyTime = 0;
   bool canCarryChild;
   Consumable preyedUponOutput;
+
+  ///You shouldn't use this class directly. Instead extend it or the predator/prey classes.
   Actor({
     @required Set<Trait> traits,
     @required Set<Skill> skills,
@@ -75,7 +77,7 @@ class Actor {
         .toInt();
   }
 
-  ///spawn a child
+  ///Spawn a child dont use this constructor. instead use the giveBirth constructor
   Actor.spawnChild(Actor other, Simulation sim) {
     ///Non gender specific traits.
     preyedUponOutput = other.preyedUponOutput;
@@ -161,6 +163,7 @@ class Actor {
     sim.bornThisCycle.putIfAbsent(instance, () => other.location);
   }
 
+  ///Use a skill assigned to this actor.
   void useSkill({String name}) {
     for (var skill in skills) {
       if (skill.name == name) {
@@ -169,7 +172,7 @@ class Actor {
     }
   }
 
-  ///should be null until impregnate method is called.
+  ///impregnate this actors with an embryo of the given traits.
   void impregnate(Set<Trait> traits) {
     embryoTraits = traits;
   }

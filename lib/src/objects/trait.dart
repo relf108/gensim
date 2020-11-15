@@ -10,7 +10,7 @@ class Trait {
     this.value = value;
     this.maxValue = maxValue;
   }
-
+  ///Returns a new Trait instance with the same values as the passed in one.
   Trait.clone(Trait other) {
     name = other.name;
     value = other.value;

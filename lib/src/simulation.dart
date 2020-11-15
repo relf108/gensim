@@ -41,12 +41,12 @@ class Simulation {
     }
     this.statChangeMap.addAll(statChangeMap);
   }
-
+  ///Watch her go
   void run() {
     var cycleCount = 0;
     while (running) {
       cycleCount++;
-      cycleStatchanges(statChangeMap);
+      _cycleStatchanges(statChangeMap);
       _cycle();
       // _outputState(cycleCount);
       SimShow.printSim(this);
@@ -121,7 +121,7 @@ class Simulation {
   }
 
   //Called each cycle to modify stats passes in
-  void cycleStatchanges(Map<Statistic, int> statChangeMap) {
+  void _cycleStatchanges(Map<Statistic, int> statChangeMap) {
     for (var parentStat in statChangeMap.entries) {
       for (var actor in actors) {
         for (var stat1 in actor.statistics) {

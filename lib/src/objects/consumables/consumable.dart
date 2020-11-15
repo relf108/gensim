@@ -9,7 +9,7 @@ class Consumable {
     this.value = value;
   }
 
-  List<SimPoint> getPointsToCheck(
+  List<SimPoint> _getPointsToCheck(
       List<SimPoint> points, int radius, int maxX, int maxY) {
     var result = <SimPoint>[];
     var xVals = <int>[];
@@ -42,9 +42,10 @@ class Consumable {
     return result;
   }
 
+  ///Returns a list of actors surrounding this object
   List<Actor> getLocalActors(List<SimPoint> points) {
     var result = <Actor>[];
-    var pointsInRadius = getPointsToCheck(points, 4, 10, 10);
+    var pointsInRadius = _getPointsToCheck(points, 4, 10, 10);
     for (var point in pointsInRadius) {
       for (var obj in point.contents) {
         if (obj is Actor) {
@@ -55,6 +56,7 @@ class Consumable {
     return result;
   }
 
+  ///Returns the local health average of actors around this object
   int getLocalAvgHealth(List<Actor> localActors, Actor current) {
     var tmpMe;
     for (var me in localActors) {

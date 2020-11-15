@@ -18,6 +18,7 @@ class Predator extends Actor {
           canCarryChild: canCarryChild,
         );
 
+  ///Calls the spawnChild on the actor class.
   Predator.spawnChild(Actor other, Simulation sim)
       : super.spawnChild(other, sim);
 }
