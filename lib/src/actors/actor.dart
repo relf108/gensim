@@ -78,6 +78,7 @@ class Actor {
   ///spawn a child
   Actor.spawnChild(Actor other, Simulation sim) {
     ///Non gender specific traits.
+    preyedUponOutput = other.preyedUponOutput;
     alive = other.alive;
     traits = other.embryoTraits;
     skills = other.skills;
@@ -93,10 +94,10 @@ class Actor {
     var newGoals = <Goal>{};
     for (var goal in other.goals) {
       if (goal.stat.name != 'pregnant') {
-        if (goal.stat.name == 'health') {
+        if (goal.stat.name.contains('health')) {
           newGoals.add(Goal.clone(goal,
-              overrideStat: statistics
-                  .firstWhere((element) => element.name == 'health')));
+              overrideStat: statistics.firstWhere(
+                  (element) => element.name.toString().contains('health'))));
         } else {
           newGoals.add(Goal.clone(goal));
         }

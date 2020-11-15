@@ -70,7 +70,7 @@ class Consumable {
     while (i < localActors.length) {
       overallHealth += localActors[i]
           .statistics
-          .firstWhere((element) => element.name == 'health')
+          .firstWhere((element) => element.name.toString().contains('health'))
           .value;
       i++;
     }
