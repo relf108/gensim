@@ -20,7 +20,7 @@ void main() {
   var weight = Trait('Weight', 80, 300);
   var gestationPeriod = GestationPeriod(cycles: 2, maxValue: 10);
   var fearOfSickKin = FearOfSickKin(avoidBelowHealth: 70);
-  var lifespan = LifeSpan(cycles: 700, maxCycles: 1000);
+  var lifespan = LifeSpan(cycles: 200, maxCycles: 500);
 
   ///Define a parent statistic and clone this each time you want to create a new instance of it.
   ///Simulation will modify stats based on name so when passing a parent stat into the stat change list,

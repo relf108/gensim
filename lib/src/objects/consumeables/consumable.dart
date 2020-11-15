@@ -1,5 +1,4 @@
 import 'package:gensim/src/actors/actor.dart';
-import 'package:gensim/src/built_in_traits/fear_of_sick_kin.dart';
 import 'package:gensim/src/sim_point.dart';
 import 'package:meta/meta.dart';
 
@@ -17,21 +16,28 @@ class Consumable {
     var xVals = <int>[];
     var yVals = <int>[];
     for (var i = 0; i < radius; i++) {
-      if (location.x + i < maxX && location.x - i >= 0) {
+      if (location.x + i < maxX) {
         xVals.add(location.x + i);
+      }
+      if (location.x - i >= 0) {
         xVals.add(location.x - i);
       }
     }
     for (var i = 0; i < radius; i++) {
-      if (location.y + i < maxY && location.y - i >= 0) {
+      if (location.y + i < maxY) {
         yVals.add(location.y + i);
+      }
+      if (location.y - i >= 0) {
         yVals.add(location.y - i);
       }
     }
     for (var x in xVals) {
       for (var y in yVals) {
-        result.add(
-            points.firstWhere((element) => element.x == x && element.y == y));
+        var point =
+            points.firstWhere((element) => element.x == x && element.y == y);
+        if (!result.contains(point)) {
+          result.add(point);
+        }
       }
     }
     return result;
@@ -40,7 +46,7 @@ class Consumable {
 //TODO untested
   List<Actor> getLocalActors(List<SimPoint> points) {
     var result = <Actor>[];
-    var pointsInRadius = getPointsToCheck(points, 2, 10, 10);
+    var pointsInRadius = getPointsToCheck(points, 4, 10, 10);
     for (var point in pointsInRadius) {
       for (var obj in point.contents) {
         if (obj is Actor) {

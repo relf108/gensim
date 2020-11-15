@@ -373,6 +373,10 @@ class Simulation {
       running = false;
       print('Sim complete');
     }
+    if (actors.isEmpty) {
+      running = false;
+      print('all specied died out');
+    }
   }
 
   Trait _reasonableFluctuation(Trait trait) {
