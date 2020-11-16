@@ -1,7 +1,75 @@
 import 'package:gensim/gensim.dart';
-import 'prey_example.dart';
-import 'predator_example.dart';
+import 'package:meta/meta.dart';
 
+///This should be in its own class when you create your own predator extension.
+class Fox extends Predator<Fox> {
+  @override
+  Set<Trait> traits;
+  @override
+  Set<Skill> skills;
+  @override
+  Set<Statistic> statistics;
+  @override
+  Set<Goal> goals;
+  @override
+  int breedPriority;
+  @override
+  bool canCarryChild;
+  @override
+  Consumable preyedUponOutput;
+
+  Fox({
+    @required this.traits,
+    @required this.skills,
+    @required this.statistics,
+    @required this.goals,
+    this.breedPriority = 1,
+    this.canCarryChild,
+    this.preyedUponOutput
+  });
+
+  Fox.createNewBorn();
+
+  @override
+  Fox giveBirth() => Fox.createNewBorn();
+
+}
+
+///This should be in it's own class when you create your own prey extension
+class Bunny extends Prey<Bunny> {
+  @override
+  Set<Trait> traits;
+  @override
+  Set<Skill> skills;
+  @override
+  Set<Statistic> statistics;
+  @override
+  Set<Goal> goals;
+  @override
+  int breedPriority;
+  @override
+  bool canCarryChild;
+  @override
+  Consumable preyedUponOutput;
+
+  Bunny(
+      {@required this.traits,
+      @required this.skills,
+      @required this.statistics,
+      @required this.goals,
+      this.breedPriority = 1,
+      this.canCarryChild,
+      this.preyedUponOutput});
+
+  Bunny.createNewBorn();
+  
+  @override
+  Bunny giveBirth() {
+    return Bunny.createNewBorn();
+  }
+}
+
+///Heres what your main should look like
 void main() {
   ///Skills allow you to make an actor perform a funtion
   var skill1 = Skill(name: 'Talk', function: (str) => print(str));
