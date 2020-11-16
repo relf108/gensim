@@ -1,6 +1,6 @@
 import 'package:gensim/gensim.dart';
-import 'bunny.dart';
-import 'fox.dart';
+import 'prey_example.dart';
+import 'predator_example.dart';
 
 void main() {
   ///Skills allow you to make an actor perform a funtion
