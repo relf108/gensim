@@ -1,3 +1,5 @@
+# 0.0.8
+
 # 0.0.7
 Major refactoring to avoid using reflection when creating new instances of users actor classes.
 

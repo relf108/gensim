@@ -1,6 +1,7 @@
 import 'package:gensim/gensim.dart';
 import 'package:gensim/src/objects/organism.dart';
 
+///Dont directly extends this class. Instead extend predator or prey
 abstract class Actor<A extends Actor<A>> implements Organism {
   Consumable get preyedUponOutput;
   set preyedUponOutput(Consumable preyedUponOutput);

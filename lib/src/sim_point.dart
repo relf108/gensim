@@ -1,5 +1,6 @@
 import 'dart:math';
 
+///A point in the simulation
 class SimPoint extends Point {
   List contents;
   @override

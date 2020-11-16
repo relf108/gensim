@@ -1,5 +1,5 @@
 name: gensim
-version: 0.0.7
+version: 0.0.8
 homepage: https://github.com/relf108/gensim
 description: Gensim is an API which allows developers to quickly and easily set up simulations of the evolutionary process.
 environment: 

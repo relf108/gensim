@@ -43,7 +43,6 @@ class ActorImpl implements Thing {
         var getPregnant = Goal(inseminated, 0, actor.breedPriority);
         actor.goals.add(getPregnant);
       }
-      //this.canCarryChild = canCarryChild;
     } else if (Random().nextBool()) {
       var pregnancy = Statistic(
           name: 'pregnant',
